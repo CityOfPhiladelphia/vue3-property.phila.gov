@@ -6,6 +6,8 @@ import { useMapStore } from '@/stores/MapStore.js';
 const MapStore = useMapStore();
 import { useDatafetchStore } from '@/stores/DatafetchStore.js';
 const DatafetchStore = useDatafetchStore();
+import { useOpaStore } from '@/stores/OpaStore.js';
+const OpaStore = useOpaStore();
 
 import { defineProps, computed, watch, nextTick } from 'vue';
 
@@ -55,7 +57,7 @@ const props = defineProps({
 
 // computed
 const assessmentHistory = computed(() => {
-  return MainStore.activeSearch.assessmentHistory.data;
+  return DatafetchStore.activeSearch.assessmentHistory.data;
 });
 
 const currentAssessmentYear = computed(() => {
@@ -77,8 +79,8 @@ const containerClass = computed(() => {
 
 const activeOpaData = computed(() => {
   let value = [];
-  if (MainStore.sources.opa_public.targets[activeOpaId.value] && MainStore.sources.opa_public.targets[activeOpaId.value].data) {
-    value = MainStore.sources.opa_public.targets[activeOpaId.value].data;
+  if (OpaStore.opa_public.targets[activeOpaId.value] && OpaStore.opa_public.targets[activeOpaId.value].data) {
+    value = OpaStore.opa_public.targets[activeOpaId.value].data;
   }
   return value;
 });
@@ -145,16 +147,16 @@ const propValueCalloutSlots = computed(() => {
 
 const opaPublicData = computed(() => {
   let opaData = [];
-  if (MainStore.sources.opa_public.targets && MainStore.sources.opa_public.targets[activeOpaId.value]) {
-    opaData.push(MainStore.sources.opa_public.targets[activeOpaId.value].data);
+  if (OpaStore.opa_public.targets && OpaStore.opa_public.targets[activeOpaId.value]) {
+    opaData.push(OpaStore.opa_public.targets[activeOpaId.value].data);
   }
   return opaData;
 });
 
 const localDetailsVerticalTableSlots = computed(() => {
   let opaPublicData = {};
-  if (MainStore.sources.opa_public.targets[activeOpaId.value]) {
-    opaPublicData = MainStore.sources.opa_public.targets[activeOpaId.value].data;
+  if (OpaStore.opa_public.targets[activeOpaId.value]) {
+    opaPublicData = OpaStore.opa_public.targets[activeOpaId.value].data;
   }
   let trashDay = function(MainStore) {
     let prop = MainStore.activeModalFeature.properties ? MainStore.activeModalFeature.properties : MainStore.activeModalFeature
@@ -583,8 +585,8 @@ const propertyDetailsVerticalTableSlots = computed(() => {
 const saleVerticalTableSlots = computed(() => {
   let state = MainStore;
   let opaAssessmentData = [];
-  if (state.sources.opa_assessment.targets[activeOpaId.value]) {
-    opaAssessmentData = state.sources.opa_assessment.targets[activeOpaId.value].data;
+  if (OpaStore.opa_assessment.targets[activeOpaId.value]) {
+    opaAssessmentData = OpaStore.opa_assessment.targets[activeOpaId.value].data;
   }
   return {
     id: 'saleTable',
@@ -619,9 +621,12 @@ const saleVerticalTableSlots = computed(() => {
 const ownerAddressTableOptions = computed(() => {
   let state = MainStore;
   let opaPublicData = [];
-  if (MainStore.sources.opa_public.targets && MainStore.sources.opa_public.targets[activeOpaId.value]) {
-    opaPublicData = MainStore.sources.opa_public.targets[activeOpaId.value].data;
+  if (OpaStore.opa_public.targets && OpaStore.opa_public.targets[activeOpaId.value]) {
+    opaPublicData = OpaStore.opa_public.targets[activeOpaId.value].data;
   }
+  // if (MainStore.sources.opa_public.targets && MainStore.sources.opa_public.targets[activeOpaId.value]) {
+  //   opaPublicData = MainStore.sources.opa_public.targets[activeOpaId.value].data;
+  // }
   return {
     id: 'ownerProperties',
     tableid: 'ddd',

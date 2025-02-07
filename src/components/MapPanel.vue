@@ -1621,52 +1621,52 @@ const mapPanelClass = computed(() => {
       position: relative;
     }
 
-    .leaflet-bar {
-      button, a.leaflet-draw-draw-polygon {
-        font-family: 'Montserrat';
-        font-weight: 600;
-      }
-    }
+    // .leaflet-bar {
+    //   button, a.leaflet-draw-draw-polygon {
+    //     font-family: 'Montserrat';
+    //     font-weight: 600;
+    //   }
+    // }
 
-    .leaflet-nearleft2.non-mobile-corner {
-      position: absolute;
-      bottom: 0px;
-      top: -1px;
-      left: 370px;
-      // left: 420px;
-      padding-bottom: 10px;
-      z-index: 500;
-    }
+    // .leaflet-nearleft2.non-mobile-corner {
+    //   position: absolute;
+    //   bottom: 0px;
+    //   top: -1px;
+    //   left: 370px;
+    //   // left: 420px;
+    //   padding-bottom: 10px;
+    //   z-index: 500;
+    // }
 
-    .leaflet-nearleft2.mobile-corner {
-      position: absolute;
-      bottom: 0px;
-      padding-bottom: 10px;
-      z-index: 500;
-      right: 10px !important;
-      top: 132px !important;
-    }
+    // .leaflet-nearleft2.mobile-corner {
+    //   position: absolute;
+    //   bottom: 0px;
+    //   padding-bottom: 10px;
+    //   z-index: 500;
+    //   right: 10px !important;
+    //   top: 132px !important;
+    // }
 
-    .leaflet-almostbottom {
-      position: absolute;
-      bottom: 90px;
-      left: 0px;
-      padding-bottom: 10px;
-      z-index: 500;
-    }
+    // .leaflet-almostbottom {
+    //   position: absolute;
+    //   bottom: 90px;
+    //   left: 0px;
+    //   padding-bottom: 10px;
+    //   z-index: 500;
+    // }
 
-    .leaflet-almostright {
-      position: absolute;
-      top: 0px;
-      right: 60px;
-      padding-bottom: 10px;
-      z-index: 500;
-    }
+    // .leaflet-almostright {
+    //   position: absolute;
+    //   top: 0px;
+    //   right: 60px;
+    //   padding-bottom: 10px;
+    //   z-index: 500;
+    // }
 
-    .leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-polygon {
-      background-position: -65px -9px;
-      background-size: 540px 60px;
-    }
+    // .leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-polygon {
+    //   background-position: -65px -9px;
+    //   background-size: 540px 60px;
+    // }
 
     // BUFFER TOOL
     // the .mobile-button class is at the same level as leaflet-bar...
@@ -1725,129 +1725,129 @@ const mapPanelClass = computed(() => {
 
     //CSS for search buttons
 
-    .leaflet-bar.leaflet-draw-toolbar>a.leaflet-draw-draw-polygon,
-    .leaflet-bar.leaflet-control.buffer-control button,
-    .leaflet-bar.leaflet-control.leaflet-draw button,
-    .leaflet-bar.leaflet-control.buffer-control .leaflet-buffer-actions,
-    .leaflet-draw-actions {
-      border-radius: 0;
-    }
+    // .leaflet-bar.leaflet-draw-toolbar>a.leaflet-draw-draw-polygon,
+    // .leaflet-bar.leaflet-control.buffer-control button,
+    // .leaflet-bar.leaflet-control.leaflet-draw button,
+    // .leaflet-bar.leaflet-control.buffer-control .leaflet-buffer-actions,
+    // .leaflet-draw-actions {
+    //   border-radius: 0;
+    // }
 
-    .leaflet-bar.leaflet-control.buffer-control :focus,
-    .leaflet-bar.leaflet-control.leaflet-draw :focus {
-      outline: none;
-    }
+    // .leaflet-bar.leaflet-control.buffer-control :focus,
+    // .leaflet-bar.leaflet-control.leaflet-draw :focus {
+    //   outline: none;
+    // }
 
-    .leaflet-control-container div .pvm-container-non-mobile,
-    div.buffer-control.leaflet-bar.inactive-buffer-button,
-    div.leaflet-draw.leaflet-bar.inactive-buffer-button,
-    div.buffer-control.leaflet-bar.inactive-draw-button,
-    div.leaflet-draw.leaflet-bar.inactive-draw-button,
-    .inactive-draw-button .leaflet-draw .leaflet-draw-section {
-      &:hover:after {
-        font-family: "Open Sans" !important;
-        background: #d3d3d3;
-        align-items: center;
-        opacity: 0.8;
-        display: flex;
-        color: #000;
-        padding: 7px;
-        // margin-left: -50px;
-      }
-    }
+    // .leaflet-control-container div .pvm-container-non-mobile,
+    // div.buffer-control.leaflet-bar.inactive-buffer-button,
+    // div.leaflet-draw.leaflet-bar.inactive-buffer-button,
+    // div.buffer-control.leaflet-bar.inactive-draw-button,
+    // div.leaflet-draw.leaflet-bar.inactive-draw-button,
+    // .inactive-draw-button .leaflet-draw .leaflet-draw-section {
+    //   &:hover:after {
+    //     font-family: "Open Sans" !important;
+    //     background: #d3d3d3;
+    //     align-items: center;
+    //     opacity: 0.8;
+    //     display: flex;
+    //     color: #000;
+    //     padding: 7px;
+    //     // margin-left: -50px;
+    //   }
+    // }
 
-    .leaflet-control-container>div{
-      // width: 100%;
-      .pvm-container-non-mobile {
-        &:hover:after {
-          content: "Enter an address, property acct #, or registry map #. Type “block:” before the address to search by block.";
-          height: 100%;
-          width: 100%;
-          min-width: 350px;
-          position: absolute;
-          left: 295px;
-        }
-      }
-    }
+    // .leaflet-control-container>div{
+    //   // width: 100%;
+    //   .pvm-container-non-mobile {
+    //     &:hover:after {
+    //       content: "Enter an address, property acct #, or registry map #. Type “block:” before the address to search by block.";
+    //       height: 100%;
+    //       width: 100%;
+    //       min-width: 350px;
+    //       position: absolute;
+    //       left: 295px;
+    //     }
+    //   }
+    // }
 
-    div.buffer-control.leaflet-bar.inactive-buffer-button {
-      &:hover:after {
-        content: "Select a point on the map to show all parcels within 250-foot radius.";
-        font-size: 12px;
-        width: 213%;
-        height: 45px;
-      }
-    }
+    // div.buffer-control.leaflet-bar.inactive-buffer-button {
+    //   &:hover:after {
+    //     content: "Select a point on the map to show all parcels within 250-foot radius.";
+    //     font-size: 12px;
+    //     width: 213%;
+    //     height: 45px;
+    //   }
+    // }
 
-    div.buffer-control.leaflet-bar div.leaflet-buffer-actions,
-    div.leaflet-draw.leaflet-bar div.leaflet-buffer-actions,
-    // .leaflet-draw-section .leaflet-draw-actions {
-    div.leaflet-draw-actions {
-      font-family: 'Open Sans';
-      background: #d3d3d3;
-      margin-left: 2px;
-      opacity: 0.8;
-      top: 0px !important;
-      left: 207px;
-      height: 45px;
-      ul, li, a {
-        height: inherit;
-        color: #000;
-      }
-      li:not(:first-child) {
-        border-left: 1px solid #AAA;
-        border-left-width: 1px;
-        border-left-style: solid;
-        border-left-color: rgb(170, 170, 170);
-      }
-      a {
-        background-color: transparent;
-        border: none;
-      }
-    }
+    // div.buffer-control.leaflet-bar div.leaflet-buffer-actions,
+    // div.leaflet-draw.leaflet-bar div.leaflet-buffer-actions,
+    // // .leaflet-draw-section .leaflet-draw-actions {
+    // div.leaflet-draw-actions {
+    //   font-family: 'Open Sans';
+    //   background: #d3d3d3;
+    //   margin-left: 2px;
+    //   opacity: 0.8;
+    //   top: 0px !important;
+    //   left: 207px;
+    //   height: 45px;
+    //   ul, li, a {
+    //     height: inherit;
+    //     color: #000;
+    //   }
+    //   li:not(:first-child) {
+    //     border-left: 1px solid #AAA;
+    //     border-left-width: 1px;
+    //     border-left-style: solid;
+    //     border-left-color: rgb(170, 170, 170);
+    //   }
+    //   a {
+    //     background-color: transparent;
+    //     border: none;
+    //   }
+    // }
 
-    div.buffer-control.leaflet-bar,
-    div.leaflet-draw.leaflet-bar {
-      display: flex;
-      border: none;
-      button{
-        min-width: 209px !important;
-      }
-      button.inactive.pointer {
-        // background-color: color(dark-ben-franklin);
-        span>svg {
-          color: white;
-        }
-      }
-      button.active {
-          background-color: white;
-          min-width: 199px;
-          // border: 2px solid color(dark-ben-franklin);
-          // span>svg { color: color(dark-ben-franklin);
-          }
-          &:after {
-            background: white;
-            // color: color(dark-ben-franklin);
-          }
-      }
-      button {
-        min-width: 198px;
-        display: flex;
-        span {
-          margin-left: 5px;
-          }
-        &:hover{
-          display: flex;
-        }
-        &:after {
-          // content: "Select Radius";
-          font-weight: normal;
-          padding: 3px 10px 0 10px;
-          position: relative;
-          color: white;
-          align-items: center;
-        }
-      }
+    // div.buffer-control.leaflet-bar,
+    // div.leaflet-draw.leaflet-bar {
+    //   display: flex;
+    //   border: none;
+    //   button{
+    //     min-width: 209px !important;
+    //   }
+    //   button.inactive.pointer {
+    //     // background-color: color(dark-ben-franklin);
+    //     span>svg {
+    //       color: white;
+    //     }
+    //   }
+    //   button.active {
+    //       background-color: white;
+    //       min-width: 199px;
+    //       // border: 2px solid color(dark-ben-franklin);
+    //       // span>svg { color: color(dark-ben-franklin);
+    //       }
+    //       &:after {
+    //         background: white;
+    //         // color: color(dark-ben-franklin);
+    //       }
+    //   }
+      // button {
+      //   min-width: 198px;
+      //   display: flex;
+      //   span {
+      //     margin-left: 5px;
+      //     }
+      //   &:hover{
+      //     display: flex;
+      //   }
+      //   &:after {
+      //     // content: "Select Radius";
+      //     font-weight: normal;
+      //     padding: 3px 10px 0 10px;
+      //     position: relative;
+      //     color: white;
+      //     align-items: center;
+      //   }
+      // }
       .leaflet-buffer-actions {
         left: 197px;
         li {

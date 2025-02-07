@@ -40,7 +40,6 @@ export const useDatafetchStore = defineStore("DatafetchStore", {
         units: null,
       },
       searchType: 'address',
-      lastSearchMethod: 'geocode',
       modals: {
         keys: [],
         open: '',
@@ -186,9 +185,6 @@ export const useDatafetchStore = defineStore("DatafetchStore", {
         this.parcels[parcelLayer].activeAddress = activeAddress;
         this.parcels[parcelLayer].activeMapreg = activeMapreg;
       }
-    },
-    setLastSearchMethod(payload) {
-      this.lastSearchMethod = payload;
     },
     setGeocodeStatus(payload) {
       this.geocode.status = payload;

@@ -19,6 +19,36 @@ let config = {
 export const useMapStore = defineStore("MapStore", {
   state: () => {
     return {
+      map: {},
+      currentMapStyle: 'pwdDrawnMapStyle',
+      currentAddressCoords: [],
+      // currentTopicMapStyle: {},
+      bufferForAddress: {},
+      currentMarkersForTopic: [],
+      addressMarker: null,
+      addressParcel: null,
+      initialized: false,
+      draw: null,
+      imageryOn: false,
+      imagerySelected: '2023',
+      cyclomediaOn: false,
+      cyclomediaInitialized: false,
+      cyclomediaRecordingsOn: false,
+      cyclomediaCameraYaw: null,
+      cyclomediaCameraHFov: null,
+      cyclomediaCameraXyz: null,
+      cyclomediaCameraLngLat: null,
+      cyclomediaYear: null,
+      clickedCyclomediaRecordingCoords: null,
+      eagleviewOn: false,
+      selectedRegmap: null,
+      regmapOpacity: 0.5,
+      zoningOpacity: 1,
+      stormwaterOpacity: 1,
+      labelLayers: [],
+
+
+
       activeTopic: '',
       shouldShowAddressCandidateList: false,
       drawStart: null,
@@ -29,77 +59,97 @@ export const useMapStore = defineStore("MapStore", {
       editableLayers: null,
       bufferShape: null,
 
-      // the leaflet map object
-      map: {
-        type: 'leaflet',
-        vectorLayerMouseover: null,
-        location: {
-          lat: null,
-          lng: null,
-        },
-        center: config.map.center,
-        bounds: {
-          _northEast: {
-            lat: null,
-            lng: null,
-          },
-          _southWest: {
-            lat: null,
-            lng: null,
-          },
-        },
-        zoom: config.map.zoom,
-        boundsBasedOnShape: null,
-        map: null,
-        // this gets set to the parcel layer for the default topic by
-        // DataManager.resetGeocode; see note above for activeTopic and
-        basemap: '',
-        imagery: 'imagery2019',
-        selectedOverlay: null,
-        shouldShowOverlaySelectControl: false,
-        shouldShowBasemapSelectControl: false,
-        // this is the key for the active overlay image (eg regmap)
-        imageOverlay: null,
-        imageOverlayOpacity: null,
-        filters: [],
-        watchPositionOn: false,
-        shouldInitialize: true,
-        initialized: null,
-      },
-      cyclomedia: {
-        initializationBegun: false,
-        initializationComplete: false,
-        navBarOpen: false,
-        // surfaceCursorOn: true,
-        latLngFromMap: null,
-        latLngFromRecordingClick: null,
-        orientation: {
-          yaw: null,
-          hFov: null,
-          xyz: null,
-        },
-        active: false,
-        recordings: [],
-      },
+      // map: {
+      //   vectorLayerMouseover: null,
+      //   location: {
+      //     lat: null,
+      //     lng: null,
+      //   },
+      //   center: config.map.center,
+      //   bounds: {
+      //     _northEast: {
+      //       lat: null,
+      //       lng: null,
+      //     },
+      //     _southWest: {
+      //       lat: null,
+      //       lng: null,
+      //     },
+      //   },
+      //   zoom: config.map.zoom,
+      //   boundsBasedOnShape: null,
+      //   map: null,
+      //   // this gets set to the parcel layer for the default topic by
+      //   // DataManager.resetGeocode; see note above for activeTopic and
+      //   basemap: '',
+      //   imagery: 'imagery2019',
+      //   selectedOverlay: null,
+      //   shouldShowOverlaySelectControl: false,
+      //   shouldShowBasemapSelectControl: false,
+      //   // this is the key for the active overlay image (eg regmap)
+      //   imageOverlay: null,
+      //   imageOverlayOpacity: null,
+      //   filters: [],
+      //   watchPositionOn: false,
+      //   shouldInitialize: true,
+      //   initialized: null,
+      // },
+      // cyclomedia: {
+      //   initializationBegun: false,
+      //   initializationComplete: false,
+      //   navBarOpen: false,
+      //   // surfaceCursorOn: true,
+      //   latLngFromMap: null,
+      //   latLngFromRecordingClick: null,
+      //   orientation: {
+      //     yaw: null,
+      //     hFov: null,
+      //     xyz: null,
+      //   },
+      //   active: false,
+      //   recordings: [],
+      // },
       // we need this to know whether or not to force an update on the first show
-      pictometry: {
-        ipa: null,
-        active: false,
-        shapeIds: [],
-        pngMarkerIds: [],
-        zoom: null,
-        // this is the state of the main leaflet map. when these values change
-        // the pictometry widget should react. the reason these are duplicated
-        // here is to avoid an infinite loop in the Map component when the
-        // viewport changes.
-        map: {
-          center: config.map.center,
-          zoom: config.map.zoom,
-        },
-      },
+      // pictometry: {
+      //   ipa: null,
+      //   active: false,
+      //   shapeIds: [],
+      //   pngMarkerIds: [],
+      //   zoom: null,
+      //   // this is the state of the main leaflet map. when these values change
+      //   // the pictometry widget should react. the reason these are duplicated
+      //   // here is to avoid an infinite loop in the Map component when the
+      //   // viewport changes.
+      //   map: {
+      //     center: config.map.center,
+      //     zoom: config.map.zoom,
+      //   },
+      // },
     };
   },
   actions: {
+    setCyclomediaCameraYaw(yaw) {
+      this.cyclomediaCameraYaw = yaw;
+    },
+    setCyclomediaCameraLngLat(lngLat, xyz) {
+      this.cyclomediaCameraXyz = xyz;
+      this.cyclomediaCameraLngLat = lngLat;
+    },
+    setMap(map) {
+      if (import.meta.env.VITE_DEBUG == 'true') console.log('MapStore.setMap is running, map:', map);
+      this.map = map;
+    },
+    setMapStyle(style) {
+      this.currentMapStyle = style;
+    },
+    async fillBufferForAddress(lng, lat) {
+      let thePoint = point([lng, lat])
+      let theBuffer = buffer(thePoint, 750, {units: 'feet'});
+      if (import.meta.env.VITE_DEBUG == 'true') console.log('fillBufferForAddress is running, thePoint:', thePoint, 'theBuffer:', theBuffer, 'lng:', lng, 'lat:', lat);
+      this.bufferForAddress = theBuffer.geometry.coordinates;
+    },
+
+
     setVectorLayerMouseover(payload) {
       this.map.vectorLayerMouseover = payload;
     },

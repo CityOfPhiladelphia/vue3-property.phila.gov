@@ -14,11 +14,22 @@ import { useMapStore } from '@/stores/MapStore.js';
 const MapStore = useMapStore();
 import { useDatafetchStore } from '@/stores/DatafetchStore.js';
 const DatafetchStore = useDatafetchStore();
+import { useGeocodeStore } from '@/stores/GeocodeStore.js';
+const GeocodeStore = useGeocodeStore();
+
+if (!import.meta.env.VITE_PUBLICPATH) {
+  MainStore.publicPath = '/';
+} else {
+  MainStore.publicPath = import.meta.env.VITE_PUBLICPATH;
+}
+if (import.meta.env.VITE_DEBUG == 'true') console.log('import.meta.env.VITE_PUBLICPATH:', import.meta.env.VITE_PUBLICPATH, 'MainStore.publicPath:', MainStore.publicPath);
 
 // ROUTER
 import { useRouter, useRoute } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
+
+import isMobileDevice from './util/is-mobile-device';
 
 // COMPONENTS
 // MapPanel,
@@ -129,38 +140,39 @@ const activeModalFeature = computed(() => {
 
 const foundItemsLength = computed(() => {
   console.log('App.vue pvd computed foundItemsLength, DatafetchStore.condoUnits.units:', DatafetchStore.condoUnits.units);
-  if (DatafetchStore.shapeSearch.data != null) {
-    if (Object.keys(DatafetchStore.condoUnits.units).length) {
-      if (lastSearchMethod !== 'buffer search') {
-        return 2;
-      } else {
-        return 3;
-      }
-    }
-    return DatafetchStore.shapeSearch.data.rows.length;
-  } else if (DatafetchStore.geocode.data != null && DatafetchStore.geocode.data != "") {
-    let geocodeArray = [];
-    geocodeArray.push(DatafetchStore.geocode.data.properties);
-    if (DatafetchStore.geocode.related != null ) {
-      DatafetchStore.geocode.related.map(a => geocodeArray.push(a));
-      return geocodeArray.length;
-    }
-    if (DatafetchStore.condoUnits.units) {
-      // return >1
-      if (lastSearchMethod !== 'buffer search') {
-        return 2;
-      } else {
-        return 3;
-      }
-    }
-    return geocodeArray.length;
+  return 1;
+  // if (DatafetchStore.shapeSearch.data != null) {
+  //   if (Object.keys(DatafetchStore.condoUnits.units).length) {
+  //     if (lastSearchMethod !== 'buffer search') {
+  //       return 2;
+  //     } else {
+  //       return 3;
+  //     }
+  //   }
+  //   return DatafetchStore.shapeSearch.data.rows.length;
+  // } else if (DatafetchStore.geocode.data != null && DatafetchStore.geocode.data != "") {
+  //   let geocodeArray = [];
+  //   geocodeArray.push(DatafetchStore.geocode.data.properties);
+  //   if (DatafetchStore.geocode.related != null ) {
+  //     DatafetchStore.geocode.related.map(a => geocodeArray.push(a));
+  //     return geocodeArray.length;
+  //   }
+  //   if (DatafetchStore.condoUnits.units) {
+  //     // return >1
+  //     if (lastSearchMethod !== 'buffer search') {
+  //       return 2;
+  //     } else {
+  //       return 3;
+  //     }
+  //   }
+  //   return geocodeArray.length;
 
-  } else if (DatafetchStore.blockSearch.data != null) {
-    if (DatafetchStore.condoUnits.units) {
-      return 2;
-    }
-    return DatafetchStore.blockSearch.data.length;
-  }
+  // } else if (DatafetchStore.blockSearch.data != null) {
+  //   if (DatafetchStore.condoUnits.units) {
+  //     return 2;
+  //   }
+  //   return DatafetchStore.blockSearch.data.length;
+  // }
 });
 
 const summaryOptions = computed(() => {
@@ -250,7 +262,8 @@ const drawShape = computed(() => {
 });
 
 const geocodeStatus = computed(() => {
-  return DatafetchStore.geocode.status;
+  return GeocodeStore.geocodeStatus;
+  // return DatafetchStore.geocode.status;
 });
 
 const condoStatus = computed(() => {
@@ -370,15 +383,15 @@ watch(
 });
 
 watch(
-  () => geocodeStatus,
+  () => geocodeStatus.value,
   (nextGeocodeStatus) => {
   console.log('watch geocodeStatus, nextGeocodeStatus:', nextGeocodeStatus);
   if (nextGeocodeStatus === 'success') {
     let geocodeType;
-    if (MainStore.geocode.data) {
-      geocodeType = MainStore.geocode.data.ais_feature_type;
+    if (GeocodeStore.aisData) {
+      geocodeType = GeocodeStore.aisData.search_type;
     }
-    if (foundItemsLength === 1 && MainStore.bufferMode === false && geocodeType !== 'intersection') {
+    if (foundItemsLength.value === 1 && MapStore.bufferMode === false && geocodeType !== 'intersection') {
       onDataChange('oneItem');
     } else {
       console.log('App.vue pvd watch geocodeStatus is calling onDataChange with multiItem');
@@ -493,24 +506,41 @@ watch(
 
 onMounted(async () => {
   //Adding this function as an event listener so that it can be used to clear when property modal errors on open as well.
+  MainStore.isMobileDevice = isMobileDevice();
   window.addEventListener("keydown", function(e) {
     return e.keyCode === 27 ? closePropertyModal() : "";
   }.bind(this), false);
-  // window.onpopstate = handlePopStateChange;
-  onResize();
+  // onResize();
   DatafetchStore.setActiveParcelLayer('pwd');
   reactToRoute();
+  handleWindowResize();
 });
 
-onBeforeMount(async () => {
-  window.addEventListener('resize', onResize);
-});
+// onBeforeMount(async () => {
+//   window.addEventListener('resize', onResize);
+// });
 
-onBeforeUnmount(async => {
-  window.removeEventListener('resize', onResize);
-});
+// onBeforeUnmount(async => {
+//   window.removeEventListener('resize', onResize);
+// });
 
 // METHODS
+
+const handleWindowResize = () => {
+  const rootElement = document.getElementById('app');
+  const rootStyle = window.getComputedStyle(rootElement);
+  const rootWidth = rootStyle.getPropertyValue('width');
+  const rootHeight = rootStyle.getPropertyValue('height');
+  const rootWidthNum = parseInt(rootWidth.replace('px', ''));
+  const rootHeightNum = parseInt(rootHeight.replace('px', ''));
+
+  const dim = {
+    width: rootWidthNum,
+    height: rootHeightNum,
+  };
+  MainStore.windowDimensions = dim;
+}
+
 const reactToRoute = () => {
   let query = route.query;
   console.log('App.vue reactToRoute is running, route.query:', route.query);
@@ -630,16 +660,16 @@ const onDataChange = (type) => {
       MainStore.setActiveModal({ featureId: 'feat-block-0' });
       // $controller.setRouteByOpaNumber(MainStore.blockSearch.data[0].properties.opa_account_num);
     } else {
-      console.log('onDataChange else else is running, MainStore.geocode.data.properties.opa_account_num:', MainStore.geocode.data.properties.opa_account_num);
+      console.log('onDataChange else else is running, GeocodeStore.aisData.features[0].properties.opa_account_num):', GeocodeStore.aisData.features[0].properties.opa_account_num);
       // MainStore.setActiveFeature', { featureId: 'feat-geocode-0' });
       MainStore.setActiveFeature(null);
       MainStore.setActiveModal({ featureId: 'feat-geocode-0' });
-      if (MainStore.geocode.data.properties.opa_account_num) {
-        // $controller.setRouteByOpaNumber(MainStore.geocode.data.properties.opa_account_num);
-      }
+      // if (GeocodeStore.aisData.features[0].properties.opa_account_num) {
+      //   // $controller.setRouteByOpaNumber(MainStore.geocode.data.properties.opa_account_num);
+      // }
     }
     hasData = true;
-    MainStore.setFullScreenMapEnabled(true);
+    // MainStore.setFullScreenMapEnabled(true);
     MainStore.setLeftPanel(true);
   }
 };
@@ -652,16 +682,16 @@ const clearResults = (value) => {
   MainStore.setFullScreenMapEnabled(nextFullScreenMapEnabled);
 };
 
-const onResize = () => {
-  if (window.innerWidth > 749) {
-    isMapVisible = true;
-    // isLarge = true;
-    MainStore.setIsLarge(true);
-  } else {
-    // isLarge = false;
-    MainStore.setIsLarge(false);
-  }
-};
+// const onResize = () => {
+//   if (window.innerWidth > 749) {
+//     isMapVisible = true;
+//     // isLarge = true;
+//     MainStore.setIsLarge(true);
+//   } else {
+//     // isLarge = false;
+//     MainStore.setIsLarge(false);
+//   }
+// };
 
 const toggleModal = () => {
   toggleBodyClass('no-scroll');
@@ -710,34 +740,35 @@ const links = [
     </template>
   </app-header>
 
-  <!-- <owner-search-modal /> -->
-
   <div
     id="main"
     class="main invisible-scrollbar"
   >
-    <!-- <div :class="mainContentClass"> -->
+    <!-- <div class="topics-holder">
+      <left-panel
+        v-show="leftPanel"
+        :foundItemsLength="foundItemsLength"
+      />
+    </div> -->
 
-      <div class="topics-holder">
-        <left-panel
-          v-show="leftPanel"
-          :foundItemsLength="foundItemsLength"
-        />
-      </div>
+    <!-- TOPIC PANEL ON LEFT -->
+    <div
+      v-if="!isMobileDevice() && MainStore.windowDimensions.width > 768 && !fullScreenMapEnabled"
+      class="topics-holder"
+      :class="fullScreenTopicsEnabled ? 'topics-holder-full' : ''"
+    >
+      <left-panel
+        :foundItemsLength="foundItemsLength"
+      />
+    </div>
 
-      <map-panel>
-
-        <!-- <cyclomedia-widget
-          v-if="shouldLoadCyclomediaWidget"
-          v-show="cyclomediaActive"
-          slot="cycloWidget"
-          :orientation="currentCycloOrientation"
-          :screen-percent="currentScreenPercent"
-        /> -->
-
-      </map-panel>
-
-    <!-- </div> -->
+    <div
+      v-show="!fullScreenTopicsEnabled"
+      class="map-panel-holder"
+      :class="fullScreenMapEnabled ? 'topics-holder-full' : ''"
+    >
+      <map-panel />
+    </div>
 
     <div
       id="results-summary"
@@ -775,11 +806,6 @@ const links = [
     :is-hidden-mobile="true"
     :links="links"
   />
-
-  <!-- <PhilaFooter
-    v-show="isLarge"
-    @howToUseLink="toggleModal()"
-  /> -->
 
   <!-- <popover
     v-if="popoverOpen"

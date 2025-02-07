@@ -7,6 +7,8 @@ const MapStore = useMapStore();
 import { useDatafetchStore } from '@/stores/DatafetchStore.js';
 const DatafetchStore = useDatafetchStore();
 
+import FullScreenTopicsToggleTab from '@/components/FullScreenTopicsToggleTab.vue';
+
 import { computed, onUnmounted } from 'vue';
 
 import PropertyCard from './PropertyCard.vue';
@@ -45,15 +47,16 @@ const sitePath = computed(() => {
   return '';
 });
 
-onUnmounted(async() => {
+// onUnmounted(async() => {
   // console.log('intro page destroyed is running');
   // this.map.invalidateSize();
-  MapStore.map.resize();
-})
+  // MapStore.map.resize();
+// })
 
 </script>
 
 <template>
+  <full-screen-topics-toggle-tab />
   <div
     id="intro-container"
     class="small-24 small-order-2 medium-12 medium-order-1"

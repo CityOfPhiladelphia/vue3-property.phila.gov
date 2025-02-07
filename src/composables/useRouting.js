@@ -1,9 +1,13 @@
 import { useMainStore } from '@/stores/MainStore';
+import { useGeocodeStore } from '@/stores/GeocodeStore';
+import { useParcelsStore } from '@/stores/ParcelsStore';
 
 export default function useRouting() {
   const routeApp = (router, route) => {
     
     const MainStore = useMainStore();
+    const GeocodeStore = useGeocodeStore();
+    const ParcelsStore = useParcelsStore();
     let startQuery = { ...route.query };
     delete startQuery['address'];
     delete startQuery['lat'];
@@ -11,7 +15,14 @@ export default function useRouting() {
     if (import.meta.env.VITE_DEBUG) console.log('routeApp, router:', router, 'route:', route, 'startQuery:', startQuery);
     if (MainStore.currentAddress) {
       if (import.meta.env.VITE_DEBUG) console.log('routeApp routing to address because MainStore has address');
-      router.push({ name: 'address', params: { address: MainStore.currentAddress }, query: { ...startQuery } });
+      // router.push({ name: 'address', params: { address: MainStore.currentAddress }, query: { ...startQuery } });
+      let p;
+      if (GeocodeStore.aisData && GeocodeStore.aisData.features && GeocodeStore.aisData.features.length > 0) {
+        p = GeocodeStore.aisData.features[0].properties.opa_account_num;
+      } else {
+        p = ParcelsStore.pwd.features[0].properties.BRT_ID;
+      }
+      router.push({ name: 'home', query: { ...startQuery, p: p } });
     } else {
       if (import.meta.env.VITE_DEBUG) console.log('routeApp routing to not-found because no address or topic');
       MainStore.addressSearchRunning = false;

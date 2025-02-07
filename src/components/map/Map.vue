@@ -158,6 +158,7 @@ onMounted(async () => {
     if (!drawLayers.length && draw.getMode() !== 'draw_polygon') {
       MainStore.lastClickCoords = [e.lngLat.lng, e.lngLat.lat];
       let startQuery = { ...route.query };
+      delete startQuery['p'];
       router.replace({ name: 'search', query: { ...startQuery, lng: e.lngLat.lng, lat: e.lngLat.lat }})
     }
     if (draw.getMode() === 'draw_polygon') {
@@ -209,32 +210,33 @@ watch(
 )
 
 // watch address pwd coordinates for moving address marker
+// const pwdCoordinates = computed(() => {
+//   if (GeocodeStore.aisData.features) {
+//     return GeocodeStore.aisData.features[0].geometry.coordinates;
+//   } else {
+//     return [];
+//   }
+// });
+
+// watch(
+//   () => pwdCoordinates.value,
+//   newCoords => {
+//   if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords, 'MapStore.addressMarker:', MapStore.addressMarker);
+//   if (newCoords.length) {
+//     const address = point(newCoords);
+//     map.getSource('addressMarker').setData(address);
+//   }
+// });
+
+// watch pwd parcel coordinates for moving pwd parcel
+// const selectedParcelId = computed(() => { return MainStore.selectedParcelId; });
 const pwdCoordinates = computed(() => {
-  if (GeocodeStore.aisData.features) {
-    return GeocodeStore.aisData.features[0].geometry.coordinates;
-  } else {
-    return [];
-  }
-});
-
-watch(
-  () => pwdCoordinates.value,
-  newCoords => {
-  if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords, 'MapStore.addressMarker:', MapStore.addressMarker);
-  if (newCoords.length) {
-    const address = point(newCoords);
-    map.getSource('addressMarker').setData(address);
-  }
-});
-
-// watch dor parcel coordinates for moving dor parcel
-const selectedParcelId = computed(() => { return MainStore.selectedParcelId; });
-const dorCoordinates = computed(() => {
   let value;
   // if (import.meta.env.VITE_DEBUG == 'true') console.log('computed dorCoordinates, selectedParcelId.value:', selectedParcelId.value, 'ParcelsStore.dor', ParcelsStore.dor);
-  if (selectedParcelId.value && ParcelsStore.dor.features && ParcelsStore.dor.features.filter(parcel => parcel.id === selectedParcelId.value)[0]) {
-    const parcel = ParcelsStore.dor.features.filter(parcel => parcel.id === selectedParcelId.value)[0];
-    // if (import.meta.env.VITE_DEBUG == 'true') console.log('computed, not watch, selectedParcelId.value:', selectedParcelId.value, 'ParcelsStore.dor.features.filter(parcel => parcel.id === selectedParcelId.value)[0]:', ParcelsStore.dor.features.filter(parcel => parcel.id === selectedParcelId.value)[0]);
+  if (ParcelsStore.pwd.features) {
+    // const parcel = ParcelsStore.pwd.features.filter(parcel => parcel.id === selectedParcelId.value)[0];
+    const parcel = ParcelsStore.pwd.features[0];
+    if (import.meta.env.VITE_DEBUG == 'true') console.log('computed, not watch, ParcelsStore.pwd.features[0]:', ParcelsStore.pwd.features[0]);
     if (parcel.geometry.type === 'Polygon') {
       value = parcel.geometry.coordinates[0];
     } else if (parcel.geometry.type === 'MultiPolygon') {
@@ -247,16 +249,16 @@ const dorCoordinates = computed(() => {
 });
 
 watch(
-  () => dorCoordinates.value,
+  () => pwdCoordinates.value,
   newCoords => {
-  if (import.meta.env.VITE_DEBUG == 'true') console.log('Map dorCoordinates watch, newCoords:', newCoords);
+  if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords);
   let newParcel;
   if (newCoords.length > 3) {
     newParcel = polygon([ newCoords ]);
-    map.getSource('dorParcel').setData(newParcel);
+    map.getSource('pwdParcel').setData(newParcel);
   } else {
     newParcel = multiPolygon(newCoords);
-    map.getSource('dorParcel').setData(newParcel);
+    map.getSource('pwdParcel').setData(newParcel);
   }
 });
 

@@ -6,7 +6,37 @@ import isMobileDevice from '../util/is-mobile-device';
 export const useMainStore = defineStore("MainStore", {
   state: () => {
     return {
+      addressSearchRunning: false,
+      datafetchRunning: false,
+      publicPath: null,
+      isMobileDevice: null,
+      isMac: null,
+      // lastSearchMethod: 'geocode',
+      lastSearchMethod: 'address',
+      addressSearchValue: '',
+      lastClickCoords: [0,0],
+      currentParcelGeocodeParameter: '',
+      // otherParcelGeocodeParameter: '',
+      currentParcelAddress:'',
+      // otherParcelAddress:'',
+      currentAddress: '',
+      currentLang: null,
+      currentNearbyDataType: null,
+      currentNearbyTimeInterval: {},
+      dataSourcesLoadedArray: [],
+      clickedRow: [],
+      clickedMarkerId: null,
+      hoveredStateId: null,
+      selectedParcelId: null,
+      fullScreenMapEnabled: false,
+      fullScreenTopicsEnabled: false,
       windowDimensions: {},
+
+
+
+
+
+
       isLarge: null,
       appName: 'pde',
       loadingData: false,
@@ -19,7 +49,7 @@ export const useMainStore = defineStore("MainStore", {
         mapOnly: false,
         topicsOnly: false,
       },
-      fullScreenMapEnabled: true,
+      fullScreenMapEnabled: false,
       fullScreenTopicsEnabled: false,
       candidates: [],
       addressEntered: null,
@@ -55,6 +85,28 @@ export const useMainStore = defineStore("MainStore", {
   },
 
   actions: {
+    setCurrentAddress(address) {
+      this.currentAddress = address;
+    },
+    setCurrentGeocodeParameter(value) {
+      this.currentGeocodeParameter = value;
+    },
+    setLastSearchMethod(searchMethod) {
+      this.lastSearchMethod = searchMethod;
+    },
+    setCurrentNearbyDataType(data) {
+      this.currentNearbyDataType = data;
+    },
+    clearDataSourcesLoadedArray() {
+      this.dataSourcesLoadedArray = [];
+    },
+    addToDataSourcesLoadedArray(data) {
+      this.dataSourcesLoadedArray.push(data);
+    },
+
+    setLastSearchMethod(payload) {
+      this.lastSearchMethod = payload;
+    },
     setIsLarge(payload) {
       this.isLarge = payload;
     },
