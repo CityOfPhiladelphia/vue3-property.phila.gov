@@ -15,7 +15,11 @@ export const useOpaStore = defineStore('OpaStore', {
         status: null,
         targets: {},
       },
-      assessmentHistory: {},
+      activeSearch: {
+        assessmentHistory: {},
+        salesHistory: {},
+      },
+      // assessmentHistory: {},
       loadingOpaData: true,
     };
   },
@@ -30,13 +34,17 @@ export const useOpaStore = defineStore('OpaStore', {
         status: null,
         targets: {},
       },
+      this.activeSearch = {
+        assessmentHistory: {},
+        salesHistory: {},
+      },
       this.assessmentHistory = {};
     },
     async fillOpaPublic() {
       try {
         const GeocodeStore = useGeocodeStore();
-        const OpaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
-        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+%3D+%27${OpaNum}%27`);
+        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+%3D+%27${opaNum}%27`);
         if (response.ok) {
           let data = await response.json();
           if (import.meta.env.VITE_DEBUG) console.log('data:', data);
@@ -53,8 +61,8 @@ export const useOpaStore = defineStore('OpaStore', {
     async fillOpaAssessment() {
       try {
         const GeocodeStore = useGeocodeStore();
-        const OpaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
-        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+%3D+%27${OpaNum}%27`);
+        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+%3D+%27${opaNum}%27`);
         if (response.ok) {
           let data = await response.json();
           if (import.meta.env.VITE_DEBUG) console.log('data:', data);
@@ -66,6 +74,47 @@ export const useOpaStore = defineStore('OpaStore', {
         }
       } catch {
         if (import.meta.env.VITE_DEBUG == 'true') console.error('opaData - await never resolved, failed to fetch address data')
+      }
+    },
+    async fillActiveSearchAssessmentHistory() {
+      try {
+        const GeocodeStore = useGeocodeStore();
+        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+assessments+where+parcel_number+IN('${opaNum}')`);
+        if (response.ok) {
+          let data = await response.json();
+          if (import.meta.env.VITE_DEBUG) console.log('activeSearchAssessmentHistory data:', data);
+          for (let row of data.rows) {
+            this.activeSearch.assessmentHistory.data = data.rows;
+            this.activeSearch.assessmentHistory.status = 'success';
+          }
+        } else {
+          if (import.meta.env.VITE_DEBUG == 'true') console.warn('activeSearchAssessmentHistory - await resolved but HTTP status was not successful')
+        }
+      } catch {
+        if (import.meta.env.VITE_DEBUG == 'true') console.error('activeSearchAssessmentHistory - await never resolved, failed to fetch address data')
+      }
+    },
+    async fillActiveSearchSalesHistory() {
+      try {
+        const GeocodeStore = useGeocodeStore();
+        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        if (import.meta.env.VITE_DEBUG) console.log('fillActiveSearchSalesHistory OpaNum:', opaNum);
+        let query = `select+*+from+RTT_SUMMARY+where+opa_account_num+%3D+%27${opaNum}%27+AND+document_type+%3D+%27DEED%27`;
+        if (import.meta.env.VITE_DEBUG) console.log('fillActiveSearchSalesHistory opaNum:', opaNum, 'query:', query);
+        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=${query}`);
+        if (response.ok) {
+          let data = await response.json();
+          if (import.meta.env.VITE_DEBUG) console.log('activeSearchSalesHistory data:', data);
+          for (let row of data.rows) {
+            this.activeSearch.salesHistory.data = data.rows;
+            this.activeSearch.salesHistory.status = 'success';
+          }
+        } else {
+          if (import.meta.env.VITE_DEBUG == 'true') console.warn('activeSearchSalesHistory - await resolved but HTTP status was not successful')
+        }
+      } catch {
+        if (import.meta.env.VITE_DEBUG == 'true') console.error('activeSearchSalesHistory - await never resolved, failed to fetch address data')
       }
     },
     // async fillAssessmentHistory() {

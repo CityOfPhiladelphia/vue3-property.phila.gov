@@ -91,20 +91,20 @@ const activeModal = computed(() => {
 
 const activeModalFeature = computed(() => {
   if (!activeModal) {
-    // console.log('activeModalFeature computed is running but stopping immediately');
+    console.log('App.vue activeModalFeature computed is running but stopping immediately');
     return null;
   }
   let state = MainStore;
   let feature = null;
-  if ([ 'geocode', 'reverseGeocode' ].includes(lastSearchMethod)) {
-    if (state.geocode.related != null && state.geocode.data._featureId != state.activeModal.featureId ) {
+  if ([ 'geocode', 'reverseGeocode', 'address' ].includes(lastSearchMethod.value)) {
+    if (GeocodeStore.related != null && GeocodeStore.related.length && GeocodeStore.aisData._featureId != MainStore.activeModal.featureId ) {
       // console.log('first if is running');
-      feature = state.geocode.related.filter(object => {
-        return object._featureId === state.activeModal.featureId;
+      feature = GeocodeStore.related.filter(object => {
+        return object._featureId === MainStore.activeModal.featureId;
       })[0];
-    } else {
+    } else if (GeocodeStore.aisData.features) {
       // console.log('second if is running');
-      feature = state.geocode.data;
+      feature = GeocodeStore.aisData.features[0];
     }
   } else if (state.lastSearchMethod === 'owner search' || state.lastSearchMethod === 'block search' ) {
     let searchValue = state.lastSearchMethod === 'owner search' ? "ownerSearch" : "blockSearch"
@@ -375,7 +375,7 @@ const opaStatus = computed(() => {
 
 // WATCH
 watch(
-  () => shapeSearchStatus,
+  () => shapeSearchStatus.value,
   (nextShapeSearchStatus) => {
   if (nextShapeSearchStatus === 'too many') {
     onDataChange();
@@ -404,7 +404,7 @@ watch(
 });
 
 watch(
-  () => blockSearchStatus,
+  () => blockSearchStatus.value,
   (nextBlockSearchStatus) => {
   console.log('watch blockSearchStatus, nextBlockSearchStatus:', nextBlockSearchStatus);
   if (nextBlockSearchStatus === 'error') {
@@ -422,14 +422,14 @@ watch(
 });
 
 watch(
-  () => leftPanel,
+  () => leftPanel.value,
   () =>{
   // console.log("intro page watcher: ", leftPanel)
   leftPanel === false ? closeModal() : ""
 });
 
 watch(
-  () => activeModal,
+  () => activeModal.value,
   () => {
   // console.log('watch activeModal is firing');
   if (MainStore.activeModal.featureId !== null) {
@@ -442,7 +442,7 @@ watch(
 });
 
 watch(
-  () => drawShape,
+  () => drawShape.value,
   (nextDrawShape) => {
   if (nextDrawShape !== null) {
     // $controller.handleDrawnShape();
@@ -451,7 +451,7 @@ watch(
 });
 
 watch(
-  () => foundItemsLength,
+  () => foundItemsLength.value,
   (nextFoundItemsLength) => {
   console.log('watch foundItemsLength is firing, nextFoundItemsLength:', nextFoundItemsLength, 'lastSearchMethod:', lastSearchMethod, 'bufferMode:', MainStore.bufferMode);
   if (!nextFoundItemsLength) {
@@ -470,7 +470,7 @@ watch(
 });
 
 watch(
-  () => ownerSearchTotal,
+  () => ownerSearchTotal.value,
   (newValue) => {
   if( newValue > MainStore.ownerSearch.data.length ){
     MainStore.setOwnerSearchModal(true);
@@ -478,7 +478,7 @@ watch(
 });
 
 watch(
-  () => ownerSearchStatus,
+  () => ownerSearchStatus.value,
   (nextOwnerSearchStatus) => {
   if (nextOwnerSearchStatus === 'waiting') {
     onDataChange('ownerSearch');
@@ -486,7 +486,7 @@ watch(
 });
 
 watch(
-  () => shouldKeepLeftPanel,
+  () => shouldKeepLeftPanel.value,
   (nextShouldKeepLeftPanel) => {
   if (nextShouldKeepLeftPanel === false) {
     // console.log('in watch shouldKeepLeftPanel if, next:', nextShouldKeepLeftPanel);
@@ -495,9 +495,9 @@ watch(
 });
 
 watch(
-  () => activeModalFeature,
+  () => activeModalFeature.value,
   (nextActiveModalFeature) => {
-  console.log('watch activeModalFeature is firing, nextActiveModalFeature:', nextActiveModalFeature);
+  console.log('App.vue watch activeModalFeature is firing, nextActiveModalFeature:', nextActiveModalFeature);
   if (nextActiveModalFeature) {
     MainStore.setActiveModalFeature(nextActiveModalFeature);
     // $controller.activeFeatureChange();
@@ -546,76 +546,31 @@ const reactToRoute = () => {
   console.log('App.vue reactToRoute is running, route.query:', route.query);
   if (query.shape) {
     // MainStore.setDrawShape(query.shape);
-    // $controller.handleDrawnShape();
     onDataChange('shapeSearch');
   } else if (query.address) {
     closePropertyModal();
     MainStore.setLeftPanel(false);
     // console.log('query.address:', query.address);
-    // $controller.handleSearchFormSubmit(query.address);
     onDataChange('geocode');
   } else if (query.owner) {
     closePropertyModal();
     MainStore.setLeftPanel(false);
     // console.log('query.owner:', query.owner);
-    // $controller.handleSearchFormSubmit(query.owner);
     onDataChange('ownerSearch');
   } else if (query.buffer) {
     closePropertyModal();
     MainStore.setLeftPanel(false);
     MainStore.setBufferMode(true);
-    // $controller.handleSearchFormSubmit(query.buffer);
     onDataChange('bufferSearch');
     MainStore.setLastSearchMethod('buffer search');
   } else if (query.block) {
     closePropertyModal();
     MainStore.setLeftPanel(false);
     // console.log('query.owner:', query.owner);
-    // $controller.handleSearchFormSubmit(query.block);
     onDataChange('blockSearch');
   } else if (query.p) {
-    // $controller.handleSearchFormSubmit(query.p);
   }
 };
-
-// const handlePopStateChange = () => {
-//   let query = route.query;
-//   console.log('App.vue pvd router handlePopStateChange is running, route:', route, 'route.query:', route.query);
-//   if (query.shape) {
-//     $controller.handleDrawnShape();
-//     // onDataChange('shapeSearch');
-//   } else if (query.address) {
-//     closePropertyModal();
-//     $store.commit('setLeftPanel', false);
-//     let aisAddress = MainStore.geocode.data.properties.street_address;
-//     console.log('handlePopStateChange query.address:', query.address, 'aisAddress:', aisAddress);
-//     if (query.address !== aisAddress) {
-//       $controller.handleSearchFormSubmit(query.address);
-//     }
-//     // onDataChange('geocode');
-//   } else if (query.owner) {
-//     closePropertyModal();
-//     $store.commit('setLeftPanel', false);
-//     // console.log('query.owner:', query.owner);
-//     $controller.handleSearchFormSubmit(query.owner);
-//     // onDataChange('ownerSearch');
-//   } else if (query.buffer) {
-//     closePropertyModal();
-//     $store.commit('setLeftPanel', false);
-//     $store.commit('setBufferMode', true);
-//     $controller.handleSearchFormSubmit(query.buffer);
-//     // onDataChange('bufferSearch');
-//     $store.commit('setLastSearchMethod', 'buffer search');
-//   } else if (query.block) {
-//     closePropertyModal();
-//     $store.commit('setLeftPanel', false);
-//     console.log('handlePopStateChange, query.block:', query.block);
-//     $controller.handleSearchFormSubmit(query.block);
-//     // onDataChange('blockSearch');
-//   } else if (query.p) {
-//     $controller.handleSearchFormSubmit(query.p);
-//   }
-// };
 
 const closePropertyModal = async() => {
   MainStore.activeModal.featureId = null;
@@ -627,8 +582,8 @@ const closePropertyModal = async() => {
 const openLeftPanel = (value) => {
   console.log('App.vue openLeftPanel is running, value:', value);
   leftPanel = value
-  MainStore.setFullScreenMapEnabled(value);
   MainStore.setLeftPanel(value);
+  // MainStore.setFullScreenMapEnabled(value);
 };
 
 const onDataChange = (type) => {
@@ -675,8 +630,8 @@ const onDataChange = (type) => {
 };
 
 const clearResults = (value) => {
-  $controller.handleSearchFormSubmit('');
-  // console.log("Clear Results", this)
+  // $controller.handleSearchFormSubmit('');
+  console.log('clearResults');
   const prevFullScreenMapEnabled = MainStore.FullScreenMapEnabled;
   const nextFullScreenMapEnabled = !prevFullScreenMapEnabled;
   MainStore.setFullScreenMapEnabled(nextFullScreenMapEnabled);

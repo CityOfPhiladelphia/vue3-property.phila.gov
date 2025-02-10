@@ -57,7 +57,7 @@ const props = defineProps({
 
 // computed
 const assessmentHistory = computed(() => {
-  return DatafetchStore.activeSearch.assessmentHistory.data;
+  return OpaStore.activeSearch.assessmentHistory.data;
 });
 
 const currentAssessmentYear = computed(() => {
@@ -86,7 +86,7 @@ const activeOpaData = computed(() => {
 });
 
 const lastSearchMethod = computed(() => {
-  return DatafetchStore.lastSearchMethod;
+  return MainStore.lastSearchMethod;
 });
 
 const activeModal = computed(() => {
@@ -115,7 +115,7 @@ const activeOpaId = computed(() => {
 const activeAddress = computed(() => {
   let feature = activeModalFeature.value;
   let address;
-  if (feature && feature.properties && [ 'geocode', 'reverseGeocode', 'owner search', 'block search' ].includes(lastSearchMethod.value)) {
+  if (feature && feature.properties && [ 'address', 'geocode', 'reverseGeocode', 'owner search', 'block search' ].includes(lastSearchMethod.value)) {
     address = feature.properties.street_address;
   } else if (feature && feature.address_std) {
     address = feature.address_std;
@@ -127,7 +127,7 @@ const activeAddress = computed(() => {
 const headerLineTwo = computed(() => {
   let feature = activeModalFeature.value;
   let zip;
-  if (feature && [ 'geocode', 'reverseGeocode', 'owner search', 'block search' ].includes(lastSearchMethod.value)) {
+  if (feature && [ 'address', 'geocode', 'reverseGeocode', 'owner search', 'block search' ].includes(lastSearchMethod.value)) {
     zip = feature.properties.zip_code + '-' + feature.properties.zip_4;
   } else if (feature) {
     zip = feature.zip_code.substring(0,5) + '-' + feature.zip_code.substring(5,10);
@@ -793,7 +793,7 @@ const salesHistoryHorizontalTableOptions = computed(() => {
   
 // watch
 watch(
-  () => activeAddress,
+  () => activeAddress.value,
   (nextActiveAddress) => {
   if (nextActiveAddress) {
     MainStore.setActiveAddressKnown(true);
@@ -886,6 +886,7 @@ const print = () => {
             <font-awesome-icon
               icon="spinner"
               aria-hidden="true"
+              spin
             />
           </div>
           <div v-if="activeAddress">
@@ -937,6 +938,7 @@ const print = () => {
           icon="spinner"
           class="fa-4x"
           aria-hidden="true"
+          spin
         />
         <h3>Loading Sale Data</h3>
       </div>
@@ -1004,30 +1006,31 @@ const print = () => {
       </div>
 
       <horizontal-table
-        v-if="assessmentHistory.value"
+        v-if="assessmentHistory"
         class='valuation-history'
-        :slots="{ items: assessmentHistory.value }"
+        :slots="{ items: assessmentHistory }"
         :options="valuationHistoryHorizontalTableOptions"
       />
 
       <!-- sales history horizontal table -->
       <div
-        v-if="!DatafetchStore.activeSearch.salesHistory.data"
+        v-if="!OpaStore.activeSearch.salesHistory.data"
         class="spinner-div small-12 cell"
       >
         <font-awesome-icon
           icon="spinner"
           class="fa-4x"
           aria-hidden="true"
+          spin
         />
         <h3>Loading Sales History</h3>
       </div>
       <horizontal-table
-        v-if="DatafetchStore.activeSearch.salesHistory.data"
+        v-if="OpaStore.activeSearch.salesHistory.data"
         class="break-avoid"
         :slots="{
           title: 'Sales History',
-          items: DatafetchStore.activeSearch.salesHistory.data
+          items: OpaStore.activeSearch.salesHistory.data
         }"
         :options="salesHistoryHorizontalTableOptions"
       />
@@ -1061,6 +1064,7 @@ const print = () => {
           icon="spinner"
           class="fa-4x"
           aria-hidden="true"
+          spin
         />
         <h3>Loading Property Details</h3>
       </div>

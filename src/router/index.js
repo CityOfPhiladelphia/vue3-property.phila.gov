@@ -14,13 +14,8 @@ const { routeApp } = useRouting();
 // this runs on address search and as part of datafetch()
 const clearStoreData = async() => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('clearStoreData is running');
-  // const MainStore = useMainStore();
-  // MainStore.clearDataSourcesLoadedArray();
-
   const OpaStore = useOpaStore();
   OpaStore.clearAllOpaData();
-  // const DorStore = useDorStore();
-  // DorStore.clearAllDorData();
 
   const GeocodeStore = useGeocodeStore();
   GeocodeStore.aisDataChecked = {};
@@ -108,7 +103,7 @@ const dataFetch = async(to, from) => {
   MainStore.datafetchRunning = true;
   const GeocodeStore = useGeocodeStore();
   const ParcelsStore = useParcelsStore();
-  const dataSourcesLoadedArray = MainStore.dataSourcesLoadedArray;
+  // const dataSourcesLoadedArray = MainStore.dataSourcesLoadedArray;
   if (to.name === 'not-found') {
     MainStore.datafetchRunning = false;
     return;
@@ -166,12 +161,14 @@ const dataFetch = async(to, from) => {
   const OpaStore = useOpaStore();
   await OpaStore.fillOpaPublic();
   await OpaStore.fillOpaAssessment();
+  await OpaStore.fillActiveSearchAssessmentHistory();
+  await OpaStore.fillActiveSearchSalesHistory();
   // if (import.meta.env.VITE_VERSION == 'cityatlas') {
   //   await OpaStore.fillAssessmentHistory();
   // }
   OpaStore.loadingOpaData = false;
 
-  MainStore.lastSearchMethod = null;
+  // MainStore.lastSearchMethod = null;
   MainStore.datafetchRunning = false;
 }
 
@@ -205,13 +202,13 @@ const router = createRouter({
           return false;
         } else if (address && address !== '') {
           if (import.meta.env.VITE_DEBUG == 'true') console.log('search route beforeEnter, address:', address);
-          MainStore.setLastSearchMethod('address');
+          MainStore.setLastSearchMethod('geocode');
           await clearStoreData();
           await getGeocodeAndPutInStore(address);
           routeApp(router, to);
         } else if (p && p !== '') {
           if (import.meta.env.VITE_DEBUG == 'true') console.log('search route beforeEnter, p:', p);
-          MainStore.setLastSearchMethod('address');
+          MainStore.setLastSearchMethod('geocode');
           await clearStoreData();
           await getGeocodeAndPutInStore(p);
           routeApp(router, to);

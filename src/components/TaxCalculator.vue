@@ -1,5 +1,311 @@
-<template>
+<script setup>
 
+import { useMainStore } from '@/stores/MainStore.js';
+const MainStore = useMainStore();
+import { useMapStore } from '@/stores/MapStore.js';
+const MapStore = useMapStore();
+import { useDatafetchStore } from '@/stores/DatafetchStore.js';
+const DatafetchStore = useDatafetchStore();
+import { useOpaStore } from '@/stores/OpaStore.js';
+const OpaStore = useOpaStore();
+
+import { ref, computed, onMounted, watch } from 'vue';
+
+// Dollar conversion for 2023 Property Tax Estimator
+const dollarUSLocale = Intl.NumberFormat('en-US', {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+});
+
+let thisYear = new Date().getFullYear();
+
+const selectedTaxYear = ref(thisYear);
+const selectedExemption = ref('none');
+const currentTaxRate = ref(0.013998);
+const selectedSeniorYear = ref(thisYear);
+const homesteadDeduction = {
+  2025: 100000,
+  2024: 80000,
+  2023: 80000,
+  2022: 45000,
+  2021: 45000,
+  2020: 45000,
+  2019: 40000,
+  2018: 30000,
+};
+
+onMounted(async () => {
+  console.log('TaxCalculator.vue mounted, nextYear.value:', nextYear.value, 'currentYear.value:', currentYear.value);
+  if (nextYear.value) {
+    selectedTaxYear.value = nextYear.value;
+    selectedSeniorYear = nextYear.value;
+  } else {
+    selectedTaxYear.value = currentYear.value;
+    selectedSeniorYear.value = currentYear.value;
+  }
+});
+
+//computed
+const currentYear = computed(() => {
+  return new Date().getFullYear();
+});
+
+const assessmentHistory = computed(() => {
+  return OpaStore.activeSearch.assessmentHistory.data;
+});
+
+const lastAssessmentYear = computed(() => {
+  if (assessmentHistory.value && assessmentHistory.value.length > 0) {
+    return assessmentHistory.value[0].year;
+  }
+});
+
+const nextYear = computed(() => {
+  let value = null;
+  if (lastAssessmentYear.value && currentYear.value < lastAssessmentYear.value) {
+    value = currentYear.value + 1;
+  }
+  return value;
+});
+
+const lastYear = computed(() => {
+  return currentYear.value - 1;
+});
+
+const hasHomestead = computed(() => {
+  return activeOpaData.value.homestead_exemption > 0;
+});
+
+const currentSelected = computed(() => {
+  return selectedExemption.value == 'current';
+});
+
+const noneSelected = computed(() => {
+  return selectedExemption.value == 'none';
+});
+
+const homesteadSelected = computed(() => {
+  return selectedExemption.value == 'homestead';
+});
+
+const loopSelected = computed(() => {
+  return selectedExemption.value == 'loop';
+});
+
+const seniorSelected = computed(() => {
+  return selectedExemption.value == 'senior';
+});
+
+const seniorYears = computed(() => {
+  let years = [];
+  for (let i=selectedTaxYear.value; i>=2018; i--) {
+    years.push(i);
+  }
+  return years;
+});
+
+const lowIncomeSelected = computed(() => {
+  return selectedExemption.value == 'lowIncome';
+});
+
+const assessmentValuesByYear = computed(() => {
+  let values = {};
+  for (let item of assessmentHistory.value) {
+    values[item.year] = item.market_value;
+  }
+  console.log('assessmentValuesByYear, values:', values);
+  return values;
+});
+
+const allValuesPreviousFiveYears = computed(() => {
+  let selectedYear = parseInt(selectedTaxYear.value);
+  let values = [];
+  for (let i=selectedYear-1; i>=selectedYear-5; i--) {
+    values.push(assessmentValuesByYear.value[i]);
+  }
+  return values;
+});
+
+const lowestValuePreviousFiveYears = computed(() => {
+  return Math.min(...allValuesPreviousFiveYears.value);
+});
+
+const selectedYearValue = computed(() => {
+  return assessmentHistory.value.filter(item => item.year == parseInt(selectedTaxYear.value))[0].market_value;
+});
+
+const previousYearValue = computed(() => {
+  return assessmentHistory.value.filter(item => item.year == parseInt(selectedTaxYear.value) - 1)[0].market_value;
+});
+
+const loopOneFiveValue = computed(() => {   
+  return selectedYearValue.value/previousYearValue.value;
+});
+
+const loopOneFiveEligible = computed(() => {
+  return loopOneFiveValue.value >= 1.5;
+});
+
+const loopOneSevenFiveValue = computed(() => {
+  const currentYearData = assessmentHistory.value.filter(item => item.year == parseInt(selectedTaxYear.value))[0];
+  return currentYearData.market_value/lowestValuePreviousFiveYears.value;
+});
+
+const loopOneSevenFiveEligible = computed(() => {
+  return loopOneSevenFiveValue.value >= 1.75;
+});
+
+const loopEitherEligible = computed(() => {
+  return loopOneFiveEligible.value || loopOneSevenFiveEligible.value; 
+});
+
+const loopBothEligible = computed(() => {
+  return loopOneFiveEligible.value && loopOneSevenFiveEligible.value;
+});
+
+const loopBase = computed(() => {
+  if (loopBothEligible.value && loopOneFiveValue.value <= loopOneSevenFiveValue.value) {
+    return previousYearValue.value;
+  } else if (loopBothEligible.value && loopOneFiveValue.value < loopOneSevenFiveValue.value) {
+    return lowestValuePreviousFiveYears.value;
+  } else if (!loopBothEligible.value && loopOneSevenFiveEligible.value) {
+    return lowestValuePreviousFiveYears.value;
+  } else if (!loopBothEligible.value && loopOneFiveEligible.value) {
+    return previousYearValue.value;
+  } else {
+    return selectedYearValue.value;
+  }
+});
+
+const loopEligibilityUsed = computed(() => {
+  if (loopBothEligible.value && loopOneFiveValue.value <= loopOneSevenFiveValue.value) {
+    return 'oneFive';
+  } else if (loopBothEligible.value && loopOneFiveValue.value > loopOneSevenFiveValue.value) {
+    return 'oneSevenFive';
+  } else if (!loopBothEligible.value && loopOneSevenFiveEligible.value) {
+    return 'oneSevenFive';
+  } else if (!loopBothEligible.value && loopOneFiveEligible.value) {
+    return 'oneFive';
+  } else {
+    return 'none';
+  }
+});
+
+const rawPayment = computed(() => {
+  return selectedYearValue.value * currentTaxRate.value;
+});
+
+const loopCurrentYearPayment = computed(() => {
+  if (loopEligibilityUsed.value == 'oneFive') {
+    return loopBase.value * 1.5 * currentTaxRate.value;
+  } else if (loopEligibilityUsed.value == 'oneSevenFive') {
+    return loopBase.value * 1.75 * currentTaxRate.value;
+  } else {
+    return rawPayment.value;
+  }
+});
+
+const loopAssessmentCap = computed(() => {
+  if (loopEligibilityUsed.value == 'oneFive') {
+    return dollarUSLocale.format(loopBase.value * 1.5);
+  } else if (loopEligibilityUsed.value == 'oneSevenFive') {
+    return dollarUSLocale.format(loopBase.value * 1.75);
+  } else {
+    return null;
+  }
+});
+
+const loopOverride = computed(() => {
+  if (loopBase.value > selectedYearValue.value) {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+const taxableValue = computed(() => {
+  let value = '';
+  let marketValueUsed;
+  if (assessmentHistory.value && assessmentHistory.value.length > 0) {
+    let assessmentData = assessmentHistory.value.filter(item => item.year == parseInt(selectedTaxYear.value))[0];
+    if (currentSelected.value) {
+      marketValueUsed = assessmentData.market_value
+        - assessmentData.exempt_land
+        - assessmentData.exempt_building
+    } else if (noneSelected.value) {
+      marketValueUsed = assessmentData.market_value;
+    } else if (homesteadSelected.value) {
+      marketValueUsed = assessmentData.market_value - homesteadDeduction.value[selectedTaxYear.value];
+      // console.log('taxableValue is running, marketValueUsed:', marketValueUsed, 'homestead.value:', homestead.value, 'exempt_land: ', activeOpaData.value.exempt_land, 'exempt_improvement: ', activeOpaData.value.exempt_building, activeOpaData.value);
+    } else if (loopSelected.value) {
+      if (loopEitherEligible.value) {
+        if (loopOverride.value) {
+          marketValueUsed = rawPayment.value;
+        } else {
+          marketValueUsed = loopCurrentYearPayment.value;
+        }
+      } else {
+        marketValueUsed = 'Not eligible';
+      }
+    } else if (lowIncomeSelected.value) {
+      let lastYear = assessmentValuesByYear.value[selectedTaxYear.value-1] - homesteadDeduction.value[selectedTaxYear.value-1];
+      let thisYear = assessmentValuesByYear.value[selectedTaxYear.value] - homesteadDeduction.value[selectedTaxYear.value];
+      marketValueUsed = thisYear > lastYear ? lastYear : thisYear;
+    } else if (seniorSelected.value) {
+      marketValueUsed = assessmentValuesByYear.value[selectedSeniorYear.value] - homesteadDeduction.value[selectedSeniorYear.value];
+    }
+  }
+  marketValueUsed = marketValueUsed < 0 ? 0 : marketValueUsed;
+  if (!loopSelected.value) {
+    value = isNaN(marketValueUsed) ? marketValueUsed : dollarUSLocale.format(marketValueUsed * currentTaxRate.value);
+  } else {
+    value = isNaN(marketValueUsed) ? marketValueUsed : dollarUSLocale.format(marketValueUsed);
+  }
+  return value;
+});
+
+const activeOpaData = computed(() => {
+  let value = [];
+  if (OpaStore.opa_public.targets[activeOpaId.value] && OpaStore.opa_public.targets[activeOpaId.value].data) {
+    value = OpaStore.opa_public.targets[activeOpaId.value].data;
+  }
+  return value;
+});
+
+const lastSearchMethod = computed(() => {
+  return MainStore.lastSearchMethod;
+});
+
+const activeModalFeature = computed(() => {
+  return MainStore.activeModalFeature;
+});
+
+const activeOpaId = computed(() => {
+  let feature = activeModalFeature.value;
+  let opaId;
+  if (feature && ![ 'geocode', 'reverseGeocode', 'owner search', 'block search' ].includes(lastSearchMethod.value)) {
+    opaId = feature.parcel_number;
+  } else if (feature) {
+    opaId = feature.properties.opa_account_num;
+  }
+  return opaId;
+});
+
+watch(
+  () => selectedTaxYear,
+  (newYear, oldYear) => {
+    // console.log('oldYear:', oldYear, 'newYear:', newYear, 'selectedSeniorYear.value:', selectedSeniorYear.value);
+    if (selectedSeniorYear.value > newYear) {
+      selectedSeniorYear.value = newYear;
+    }
+  }
+);
+
+
+</script>
+
+<template>
   <!-- Property Tax Calculator -->
   <div class="tax-calc-section has-background-ben-franklin-blue-light hide-print">
     <div>
@@ -14,9 +320,9 @@
           ref='tax_year'
           v-model="selectedTaxYear"
         >
-          <option v-if="!this.nextYear" :value="this.lastYear">{{ this.lastYear }}</option>
+          <option v-if="!nextYear" :value="lastYear">{{ lastYear }}</option>
           <option :value="currentYear">{{ currentYear }}</option>
-          <option v-if="this.nextYear" :value="this.nextYear">{{ this.nextYear }}</option>
+          <option v-if="nextYear" :value="nextYear">{{ nextYear }}</option>
         </select>
       </div>
       <p>
@@ -218,286 +524,7 @@
     </div>
   </div>
   <!-- End of 2023 Property Tax Calculator -->
-
 </template>
-
-<script>
-
-// Dollar conversion for 2023 Property Tax Estimator
-const dollarUSLocale = Intl.NumberFormat('en-US', {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-});
-
-let thisYear = new Date().getFullYear();
-// console.log('currentYear:', currentYear);
-// let nextYear = currentYear + 1;
-
-export default {
-  name: 'TaxCalculator',
-  data() {
-    return {
-      // currentYear: currentYear,
-      // nextYear: nextYear,
-      selectedTaxYear: thisYear,
-      selectedExemption: 'none',
-      currentTaxRate: 0.013998,
-      selectedSeniorYear: thisYear,
-      homesteadDeduction: {
-        2025: 100000,
-        2024: 80000,
-        2023: 80000,
-        2022: 45000,
-        2021: 45000,
-        2020: 45000,
-        2019: 40000,
-        2018: 30000,
-      },
-    };
-  },
-  mounted() {
-    console.log('TaxCalculator.vue mounted, this.nextYear:', this.nextYear, 'this.currentYear:', this.currentYear);
-    if (this.nextYear) {
-      this.selectedTaxYear = this.nextYear;
-      this.selectedSeniorYear = this.nextYear;
-    } else {
-      this.selectedTaxYear = this.currentYear;
-      this.selectedSeniorYear = this.currentYear;
-    }
-  },
-  computed: {
-    currentYear() {
-      return new Date().getFullYear();
-    },
-    assessmentHistory() {
-      return this.$store.state.activeSearch.assessmentHistory.data;
-    },
-    lastAssessmentYear() {
-      if (this.$store.state.activeSearch.assessmentHistory.data) {
-        return this.$store.state.activeSearch.assessmentHistory.data[0].year;
-      }
-    },
-    nextYear() {
-      let value = null;
-      if (this.lastAssessmentYear && this.currentYear < this.lastAssessmentYear) {
-        value = this.currentYear + 1;
-      }
-      return value;
-    },
-    lastYear() {
-      return this.currentYear - 1;
-    },
-    hasHomestead() {
-      return this.activeOpaData.homestead_exemption > 0;
-    },
-    currentSelected() {
-      return this.selectedExemption == 'current';
-    },
-    noneSelected() {
-      return this.selectedExemption == 'none';
-    },
-    homesteadSelected() {
-      return this.selectedExemption == 'homestead';
-    },
-    loopSelected() {
-      return this.selectedExemption == 'loop';
-    },
-    seniorSelected() {
-      return this.selectedExemption == 'senior';
-    },
-    seniorYears() {
-      let years = [];
-      for (let i=this.selectedTaxYear; i>=2018; i--) {
-        years.push(i);
-      }
-      return years;
-    },
-    lowIncomeSelected() {
-      return this.selectedExemption == 'lowIncome';
-    },
-    assessmentValuesByYear() {
-      let values = {};
-      for (let item of this.assessmentHistory) {
-        values[item.year] = item.market_value;
-      }
-      console.log('assessmentValuesByYear, values:', values);
-      return values;
-    },
-    allValuesPreviousFiveYears() {
-      let selectedYear = parseInt(this.selectedTaxYear);
-      let values = [];
-      for (let i=selectedYear-1; i>=selectedYear-5; i--) {
-        values.push(this.assessmentValuesByYear[i]);
-      }
-      return values;
-    },
-    lowestValuePreviousFiveYears() {
-      return Math.min(...this.allValuesPreviousFiveYears);
-    },
-    selectedYearValue() {
-      return this.assessmentHistory.filter(item => item.year == parseInt(this.selectedTaxYear))[0].market_value;
-    },
-    previousYearValue() {
-      return this.assessmentHistory.filter(item => item.year == parseInt(this.selectedTaxYear) - 1)[0].market_value;
-    },
-    loopOneFiveValue() {      
-      return this.selectedYearValue/this.previousYearValue;
-    },
-    loopOneFiveEligible() {
-      return this.loopOneFiveValue >= 1.5;
-    },
-    loopOneSevenFiveValue() {
-      const currentYearData = this.assessmentHistory.filter(item => item.year == parseInt(this.selectedTaxYear))[0];
-      return currentYearData.market_value/this.lowestValuePreviousFiveYears;
-    },
-    loopOneSevenFiveEligible() {
-      return this.loopOneSevenFiveValue >= 1.75;
-    },
-    loopEitherEligible() {
-      return this.loopOneFiveEligible || this.loopOneSevenFiveEligible; 
-    },
-    loopBothEligible() {
-      return this.loopOneFiveEligible && this.loopOneSevenFiveEligible;
-    },
-    loopBase() {
-      if (this.loopBothEligible && this.loopOneFiveValue <= this.loopOneSevenFiveValue) {
-        return this.previousYearValue;
-      } else if (this.loopBothEligible && this.loopOneFiveValue < this.loopOneSevenFiveValue) {
-        return this.lowestValuePreviousFiveYears;
-      } else if (!this.loopBothEligible && this.loopOneSevenFiveEligible) {
-        return this.lowestValuePreviousFiveYears;
-      } else if (!this.loopBothEligible && this.loopOneFiveEligible) {
-        return this.previousYearValue;
-      } else {
-        return this.selectedYearValue;
-      }
-    },
-    loopEligibilityUsed() {
-      if (this.loopBothEligible && this.loopOneFiveValue <= this.loopOneSevenFiveValue) {
-        return 'oneFive';
-      } else if (this.loopBothEligible && this.loopOneFiveValue > this.loopOneSevenFiveValue) {
-        return 'oneSevenFive';
-      } else if (!this.loopBothEligible && this.loopOneSevenFiveEligible) {
-        return 'oneSevenFive';
-      } else if (!this.loopBothEligible && this.loopOneFiveEligible) {
-        return 'oneFive';
-      } else {
-        return 'none';
-      }
-    },
-    rawPayment() {
-      return this.selectedYearValue * this.currentTaxRate;
-    },
-    loopCurrentYearPayment() {
-      if (this.loopEligibilityUsed == 'oneFive') {
-        return this.loopBase * 1.5 * this.currentTaxRate;
-      } else if (this.loopEligibilityUsed == 'oneSevenFive') {
-        return this.loopBase * 1.75 * this.currentTaxRate;
-      } else {
-        return this.rawPayment;
-      }
-    },
-    loopAssessmentCap() {
-      if (this.loopEligibilityUsed == 'oneFive') {
-        return dollarUSLocale.format(this.loopBase * 1.5);
-      } else if (this.loopEligibilityUsed == 'oneSevenFive') {
-        return dollarUSLocale.format(this.loopBase * 1.75);
-      } else {
-        return null;
-      }
-    },
-    loopOverride() {
-      if (this.loopBase > this.selectedYearValue) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    taxableValue() {
-      let value = '';
-      let marketValueUsed;
-      if (this.assessmentHistory && this.assessmentHistory.length > 0) {
-        let assessmentData = this.assessmentHistory.filter(item => item.year == parseInt(this.selectedTaxYear))[0];
-        if (this.currentSelected) {
-          marketValueUsed = assessmentData.market_value
-            - assessmentData.exempt_land
-            - assessmentData.exempt_building
-        } else if (this.noneSelected) {
-          marketValueUsed = assessmentData.market_value;
-        } else if (this.homesteadSelected) {
-          marketValueUsed = assessmentData.market_value - this.homesteadDeduction[this.selectedTaxYear];
-          // console.log('taxableValue is running, marketValueUsed:', marketValueUsed, 'this.homestead:', this.homestead, 'exempt_land: ', this.activeOpaData.exempt_land, 'exempt_improvement: ', this.activeOpaData.exempt_building, this.activeOpaData);
-        } else if (this.loopSelected) {
-          if (this.loopEitherEligible) {
-            if (this.loopOverride) {
-              marketValueUsed = this.rawPayment;
-            } else {
-              marketValueUsed = this.loopCurrentYearPayment;
-            }
-          } else {
-            marketValueUsed = 'Not eligible';
-          }
-        } else if (this.lowIncomeSelected) {
-          let lastYear = this.assessmentValuesByYear[this.selectedTaxYear-1] - this.homesteadDeduction[this.selectedTaxYear-1];
-          let thisYear = this.assessmentValuesByYear[this.selectedTaxYear] - this.homesteadDeduction[this.selectedTaxYear];
-          marketValueUsed = thisYear > lastYear ? lastYear : thisYear;
-        } else if (this.seniorSelected) {
-          marketValueUsed = this.assessmentValuesByYear[this.selectedSeniorYear] - this.homesteadDeduction[this.selectedSeniorYear];
-        }
-      }
-      marketValueUsed = marketValueUsed < 0 ? 0 : marketValueUsed;
-      if (!this.loopSelected) {
-        value = isNaN(marketValueUsed) ? marketValueUsed : dollarUSLocale.format(marketValueUsed * this.currentTaxRate);
-      } else {
-        value = isNaN(marketValueUsed) ? marketValueUsed : dollarUSLocale.format(marketValueUsed);
-      }
-      return value;
-    },
-    // eligibleDeferral() {
-    //   let value;
-    //   if (this.selectedTaxYear == '2024') {
-    //     value = "may be";
-    //   } else {
-    //     value = 'is not';
-    //   }
-    //   return value;
-    // },
-    activeOpaData() {
-      let value = [];
-      if (this.$store.state.sources.opa_public.targets[this.activeOpaId] && this.$store.state.sources.opa_public.targets[this.activeOpaId].data) {
-        value = this.$store.state.sources.opa_public.targets[this.activeOpaId].data;
-      }
-      return value;
-    },
-    lastSearchMethod() {
-      return this.$store.state.lastSearchMethod;
-    },
-    activeModalFeature() {
-      return this.$store.state.activeModalFeature;
-    },
-    activeOpaId() {
-      let feature = this.activeModalFeature;
-      let opaId;
-      if (feature && ![ 'geocode', 'reverseGeocode', 'owner search', 'block search' ].includes(this.lastSearchMethod)) {
-        opaId = feature.parcel_number;
-      } else if (feature) {
-        opaId = feature.properties.opa_account_num;
-      }
-      return opaId;
-    },
-  },
-  watch: {
-    selectedTaxYear(newYear, oldYear) {
-      // console.log('oldYear:', oldYear, 'newYear:', newYear, 'this.selectedSeniorYear:', this.selectedSeniorYear);
-      if (this.selectedSeniorYear > newYear) {
-        this.selectedSeniorYear = newYear;
-      }
-    },
-  },
-}
-
-</script>
 
 <style>
 

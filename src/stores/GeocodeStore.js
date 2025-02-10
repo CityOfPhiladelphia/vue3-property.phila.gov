@@ -82,9 +82,10 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
         if (import.meta.env.VITE_DEBUG == 'true') console.log('Address - fillAisData is running, address:', address)
         const response = await fetch(`https://api.phila.gov/ais/v1/search/${encodeURIComponent(address)}?include_units=false`)
         if (response.ok) {
-          if (import.meta.env.VITE_DEBUG == 'true') console.log('Address - await resolved and HTTP status is successful')
           let data = await response.json();
           let features = data.features;
+          features.map((a, index) => a._featureId = 'feat-geocode-'+index);
+          if (import.meta.env.VITE_DEBUG == 'true') console.log('Address - await resolved and HTTP status is successful, data:', data, 'features:', features);
           this.aisData = data
           this.geocodeStatus = 'success';
 
@@ -141,16 +142,16 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
                 feature.properties[i] = "";
               }
 
-              if(this.store.state.parcels.pwd === null) {
+              if(ParcelsStore.pwd === null) {
                 this.setFeatureProperties(feature, totalUnits, units);
 
                 console.log('getPages if is running, feature:', feature);
                 feature.condo = true;
-                store.commit('setGeocodeData', feature);
-                store.commit('setGeocodeStatus', 'success');
+                this.aisData = feature;
+                this.geocodeStatus = 'success';
                 // console.log('getPages else is still running 2');
-                if (this.store.state.lastSearchMethod !== 'reverseGeocode') {
-                  this.store.commit('setLastSearchMethod', 'geocode');
+                if (MainStore.lastSearchMethod !== 'reverseGeocode') {
+                  MainStore.setLastSearchMethod('geocode');
                 }
                 // console.log('feature:', feature);
               } else {
@@ -158,11 +159,11 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
                 this.setFeatureProperties(feature, totalUnits);
 
                 // console.log('getPages else is still running 1');
-                store.commit('setGeocodeData', feature);
-                store.commit('setGeocodeStatus', 'success');
+                this.aisData = feature;
+                this.geocodeStatus = 'success';
                 // console.log('getPages else is still running 2');
-                if (this.store.state.lastSearchMethod !== 'reverseGeocode') {
-                  this.store.commit('setLastSearchMethod', 'geocode');
+                if (MainStore.lastSearchMethod !== 'reverseGeocode') {
+                  MainStore.lastSearchMethod = 'geocode';
                 }
                 // console.log('feature:', feature);
               }
@@ -175,7 +176,8 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
             let exactMatch = features.filter(a => a.match_type === 'exact');
             // console.log("exactMatch: ", exactMatch);
             getPages = getPages.bind(this);
-            if (this.config.app && !exactMatch.length > 0 && this.config.app.title === 'Property Data Explorer') {
+            if (this.config.app && !exactMatch.length > 0) {
+            // if (this.config.app && !exactMatch.length > 0 && this.config.app.title === 'Property Data Explorer') {
               return getPages(features);
             }
 

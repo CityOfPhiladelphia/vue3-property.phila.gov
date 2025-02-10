@@ -11,8 +11,8 @@ export const useMainStore = defineStore("MainStore", {
       publicPath: null,
       isMobileDevice: null,
       isMac: null,
-      // lastSearchMethod: 'geocode',
-      lastSearchMethod: 'address',
+      lastSearchMethod: 'geocode',
+      // lastSearchMethod: 'address',
       addressSearchValue: '',
       lastClickCoords: [0,0],
       currentParcelGeocodeParameter: '',
@@ -33,12 +33,7 @@ export const useMainStore = defineStore("MainStore", {
       windowDimensions: {},
 
 
-
-
-
-
       isLarge: null,
-      appName: 'pde',
       loadingData: false,
       activeAddressKnown: false,
       isMobileOrTablet: isMobileDevice(),
@@ -49,8 +44,6 @@ export const useMainStore = defineStore("MainStore", {
         mapOnly: false,
         topicsOnly: false,
       },
-      fullScreenMapEnabled: false,
-      fullScreenTopicsEnabled: false,
       candidates: [],
       addressEntered: null,
       parcels: {},
@@ -104,9 +97,6 @@ export const useMainStore = defineStore("MainStore", {
       this.dataSourcesLoadedArray.push(data);
     },
 
-    setLastSearchMethod(payload) {
-      this.lastSearchMethod = payload;
-    },
     setIsLarge(payload) {
       this.isLarge = payload;
     },
