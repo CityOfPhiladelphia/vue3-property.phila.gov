@@ -3,7 +3,7 @@ name: Build, Check And Deploy to Prod
 on:
   push:
     branches:
-      - production
+      - production_x
 
 jobs:
   build:

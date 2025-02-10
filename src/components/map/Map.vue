@@ -152,9 +152,7 @@ onMounted(async () => {
     if (e.clickOnLayer) {
       return;
     }
-    // router.push({ name: 'search', query: { lng: e.lngLat.lng, lat: e.lngLat.lat }})
     let drawLayers = map.queryRenderedFeatures(e.point).filter(feature => [ 'mapbox-gl-draw-cold', 'mapbox-gl-draw-hot' ].includes(feature.source));
-    // if (import.meta.env.VITE_DEBUG == 'true') console.log('Map.vue handleMapClick, e:', e, 'drawLayers:', drawLayers, 'drawMode:', drawMode, 'e:', e, 'map.getStyle():', map.getStyle(), 'MapStore.drawStart:', MapStore.drawStart);
     if (!drawLayers.length && draw.getMode() !== 'draw_polygon') {
       MainStore.lastClickCoords = [e.lngLat.lng, e.lngLat.lat];
       let startQuery = { ...route.query };

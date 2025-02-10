@@ -55,35 +55,17 @@ const getParcelsAndPutInStore = async(lng, lat) => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('getParcelsAndPutInStore is running');
   const MainStore = useMainStore();
   const ParcelsStore = useParcelsStore();
-  let parcelLayer = 'pwd';
   await ParcelsStore.checkParcelDataByLngLat(lng, lat, 'pwd');
-  // await ParcelsStore.checkParcelDataByLngLat(lng, lat, 'dor');
-  // if (parcelLayer === 'dor' && !Object.keys(ParcelsStore.dorChecked).length) {
-  //   return;
-  if (parcelLayer === 'pwd' && !Object.keys(ParcelsStore.pwdChecked).length) {
+  if (!Object.keys(ParcelsStore.pwdChecked).length) {
     return;
   }
   ParcelsStore.pwd = ParcelsStore.pwdChecked;
-  // ParcelsStore.dor = ParcelsStore.dorChecked;
-
-  // collects 4 things to attempt to geocode from the parcels clicked
-  // const otherParcelLayer = parcelLayer === 'pwd' ? 'dor' : 'pwd';
   const addressField = 'ADDRESS';
-  // const addressField = parcelLayer === 'pwd' ? 'ADDRESS' : 'ADDR_SOURCE';
-  // const otherAddressField = otherParcelLayer === 'pwd' ? 'ADDRESS' : 'ADDR_SOURCE';
   const geocodeParameterField = 'BRT_ID';
-  // const geocodeParameterField = parcelLayer === 'pwd' ? 'PARCELID' : 'MAPREG';
-  // const otherGeocodeParameterField = otherParcelLayer === 'pwd' ? 'PARCELID' : 'MAPREG';
-  
-  // if (import.meta.env.VITE_DEBUG == 'true') console.log('parcelLayer:', parcelLayer);
-  if (ParcelsStore[parcelLayer].features) {
+  if (ParcelsStore.pwd.features) {
     MainStore.currentParcelAddress = ParcelsStore.pwd.features[0].properties[addressField];
     MainStore.currentParcelGeocodeParameter = ParcelsStore.pwd.features[0].properties[geocodeParameterField]
   }
-  // if (ParcelsStore[otherParcelLayer].features) {
-  //   MainStore.otherParcelAddress = ParcelsStore[otherParcelLayer].features[0].properties[otherAddressField];
-  //   MainStore.otherParcelGeocodeParameter = ParcelsStore[otherParcelLayer].features[0].properties[otherGeocodeParameterField]
-  // }
 }
 
 // it should only show an address at the top that has been found in AIS for the top line address, so, if map clicked, it
