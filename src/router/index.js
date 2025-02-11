@@ -213,7 +213,7 @@ const router = createRouter({
           await getGeocodeAndPutInStore(p);
           routeApp(router, to);
         } else if (lat && lng) {
-          MainStore.setLastSearchMethod('mapClick');
+          MainStore.setLastSearchMethod('reverseGeocode');
           await getParcelsAndPutInStore(lng, lat);
           if (!Object.keys(ParcelsStore.pwdChecked).length && !Object.keys(ParcelsStore.dorChecked).length) {
             MainStore.addressSearchRunning = false;

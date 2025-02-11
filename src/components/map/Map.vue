@@ -655,12 +655,20 @@ const turnOnEagleview = () => {
   MapStore.eagleviewOn = true;
 }
 
+const mapClass = computed(() => {
+  if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
+    return 'map-class';
+  } else {
+    return 'map-class-data-open';
+  }
+});
+
 </script>
 
 <template>
   <div
     id="map"
-    class="map map-class"
+    :class="'map ' + mapClass"
   >
     <div
       v-if="MainStore.addressSearchRunning"

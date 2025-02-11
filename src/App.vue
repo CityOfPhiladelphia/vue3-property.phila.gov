@@ -5,7 +5,7 @@ import { onMounted, onBeforeMount, onBeforeUnmount, computed, watch, nextTick } 
 import MapPanel from './components/MapPanel.vue';
 import DataPanel from './components/DataPanel.vue';
 import LeftPanel from './components/LeftPanel.vue';
-// import OwnerSearchModal from './components/OwnerSearchModal.vue';
+import CollectionSummary from './components/CollectionSummary.vue';
 import Logo from '@/assets/city-of-philadelphia-logo.png';
 
 import { useMainStore } from '@/stores/MainStore.js';
@@ -30,15 +30,6 @@ const route = useRoute();
 const router = useRouter();
 
 import isMobileDevice from './util/is-mobile-device';
-
-// COMPONENTS
-// MapPanel,
-// DataPanel,
-// LeftPanel,
-// OwnerSearchModal,
-// CyclomediaWidget: () => import(/* webpackChunkName: "mbmb_pvm_CyclomediaWidget" */'@phila/vue-mapping/src/cyclomedia/Widget.vue'),
-// CollectionSummary: () => import(/* webpackChunkName: "pvc_Callout" */'@phila/vue-comps/src/components/CollectionSummary.vue'),
-// Popover: () => import(/* webpackChunkName: "mbmb_pvc_Popover" */'@phila/vue-comps/src/components/Popover.vue'),
 
 const props = defineProps({
   appLogo: {
@@ -583,7 +574,7 @@ const openLeftPanel = (value) => {
   console.log('App.vue openLeftPanel is running, value:', value);
   leftPanel = value
   MainStore.setLeftPanel(value);
-  // MainStore.setFullScreenMapEnabled(value);
+  MainStore.setFullScreenMapEnabled(!value);
 };
 
 const onDataChange = (type) => {
@@ -608,20 +599,15 @@ const onDataChange = (type) => {
     if (['shape search', 'buffer search'].includes(lastSearchMethod)) {
       MainStore.setActiveFeature({ featureId: 'feat-shape-0' });
       MainStore.setActiveModal({ featureId: 'feat-shape-0' });
-      // $controller.setRouteByOpaNumber(MainStore.parcels.pwd[0].properties.BRT_ID);
     } else if (['block search', 'blockSearch'].includes(lastSearchMethod)) {
       console.log('onDataChange else is running, type:', type, 'lastSearchMethod is block search');
       MainStore.setActiveFeature({ featureId: 'feat-block-0' });
       MainStore.setActiveModal({ featureId: 'feat-block-0' });
-      // $controller.setRouteByOpaNumber(MainStore.blockSearch.data[0].properties.opa_account_num);
     } else {
       console.log('onDataChange else else is running, GeocodeStore.aisData.features[0].properties.opa_account_num):', GeocodeStore.aisData.features[0].properties.opa_account_num);
       // MainStore.setActiveFeature', { featureId: 'feat-geocode-0' });
       MainStore.setActiveFeature(null);
       MainStore.setActiveModal({ featureId: 'feat-geocode-0' });
-      // if (GeocodeStore.aisData.features[0].properties.opa_account_num) {
-      //   // $controller.setRouteByOpaNumber(MainStore.geocode.data.properties.opa_account_num);
-      // }
     }
     hasData = true;
     // MainStore.setFullScreenMapEnabled(true);
@@ -630,7 +616,6 @@ const onDataChange = (type) => {
 };
 
 const clearResults = (value) => {
-  // $controller.handleSearchFormSubmit('');
   console.log('clearResults');
   const prevFullScreenMapEnabled = MainStore.FullScreenMapEnabled;
   const nextFullScreenMapEnabled = !prevFullScreenMapEnabled;
@@ -676,6 +661,10 @@ const links = [
   },
 ];
 
+const mainRowClass = computed(() => {
+  return 'main-row-full';
+});
+
 </script>
 
 <template>
@@ -699,61 +688,66 @@ const links = [
     id="main"
     class="main invisible-scrollbar"
   >
-    <!-- <div class="topics-holder">
-      <left-panel
-        v-show="leftPanel"
-        :foundItemsLength="foundItemsLength"
-      />
-    </div> -->
-
-    <!-- TOPIC PANEL ON LEFT -->
-    <div
-      v-if="!isMobileDevice() && MainStore.windowDimensions.width > 768 && !fullScreenMapEnabled"
-      class="topics-holder"
-      :class="fullScreenTopicsEnabled ? 'topics-holder-full' : ''"
-    >
-      <left-panel
-        :foundItemsLength="foundItemsLength"
-      />
-    </div>
 
     <div
-      v-show="!fullScreenTopicsEnabled"
-      class="map-panel-holder"
-      :class="fullScreenMapEnabled ? 'topics-holder-full' : ''"
-    >
-      <map-panel />
-    </div>
-
-    <div
-      id="results-summary"
-      :class="summaryClass"
+      id="main-column"
+      class="main-column invisible-scrollbar"
     >
       <div
-        v-show="currentErrorType !== null"
-        v-html="errorMessage"
-      />
-      <!-- <collection-summary
-        v-if="anySearchStatus === 'success'"
-        id="collection-summary"
-        :options="summaryOptions"
-        :slots="summaryOptions.slots"
-      /> -->
-      <div
-        v-if="anySearchStatus === 'success'"
-        id="clear-results"
-        @click="clearResults"
+        id="main-row"
+        :class="mainRowClass"
       >
-        <a>
-          <u><b> Clear search</b></u>
-        </a>
-      </div>
-    </div>
+        <!-- TOPIC PANEL ON LEFT -->
+        <div
+          v-if="!isMobileDevice() && MainStore.windowDimensions.width > 768 && !fullScreenMapEnabled"
+          class="topics-holder"
+          :class="fullScreenTopicsEnabled ? 'topics-holder-full' : ''"
+        >
+          <left-panel
+            :foundItemsLength="foundItemsLength"
+          />
+        </div>
 
-    <div :class="tableClass">
-      <data-panel />
-    </div>
-  </div>
+        <div
+          v-show="!fullScreenTopicsEnabled"
+          class="map-panel-holder"
+          :class="fullScreenMapEnabled ? 'topics-holder-full' : ''"
+        >
+          <map-panel />
+        </div>
+
+      </div> <!-- end of main-row -->
+
+      <div
+        id="results-summary"
+        :class="summaryClass"
+      >
+        <div
+          v-show="currentErrorType !== null"
+          v-html="errorMessage"
+        />
+        <collection-summary
+          v-if="anySearchStatus === 'success'"
+        />
+        <!-- :options="summaryOptions"
+        :slots="summaryOptions.slots" -->
+        <div
+          v-if="anySearchStatus === 'success'"
+          id="clear-results"
+          @click="clearResults"
+        >
+          <a>
+            <u><b> Clear search</b></u>
+          </a>
+        </div>
+      </div>
+        
+      <div :class="tableClass">
+        <data-panel />
+      </div>
+    </div> <!-- end of main-column -->
+
+  </div> <!-- end of main -->
 
   <!-- FOOTER -->
   <app-footer
@@ -772,102 +766,75 @@ const links = [
 
 <style lang="scss">
 
-button {
-  cursor: pointer;
-}
+// button {
+//   cursor: pointer;
+// }
 
-.toggle-map{
-  margin:0 !important;
-}
+// .toggle-map{
+//   margin:0 !important;
+// }
 
-.main-content{
-  position: relative;
-}
+// .main-content{
+//   position: relative;
+// }
 
-.top-full {
-  position: relative;
-  top: 0;
-  bottom: 0;
-}
+// .top-full {
+//   position: relative;
+//   top: 0;
+//   bottom: 0;
+// }
 
-//TODO, move to standards
-// @each $value in $colors {
-//   .#{nth($value, 1)} {
-//     color: nth($value, 2) !important;
+// .no-scroll{
+//   overflow: hidden;
+//   height: 100vh;
+// }
+// .toggle-map{
+//   position: fixed;
+//   bottom:0;
+//   width: 100%;
+//   z-index: 900;
+// }
+
+// .step-group{
+//   .step-label {
+//     display: inline-block;
+//     background: black;
+//     color:white;
+//     text-align: center;
 //   }
-//   .bg-#{nth($value, 1)} {
-//     background-color: nth($value, 2) !important;
-//   }
-//   .bdr-#{nth($value, 1)} {
-//     border-color: nth($value, 2) !important;
+//   .step{
+//     border-left:1px solid black;
+
+//     &:last-of-type {
+//       border:none;
+//     }
+
+//     .step-title{
+//       font-size:1.2rem;
+//     }
 //   }
 // }
 
-.no-scroll{
-  overflow: hidden;
-  height: 100vh;
-}
-.toggle-map{
-  position: fixed;
-  bottom:0;
-  width: 100%;
-  z-index: 900;
-}
+// #app {
+//   height: 100%;
+// }
 
-.step-group{
-  // margin-left:$spacing-medium;
+// #clear-results {
+//   display: inline-block !important;
+//   margin-left: 10px;
+//   font-size: 14px;
+// }
 
-  .step-label {
-    // @include secondary-font(400);
-    display: inline-block;
-    // margin-left: -$spacing-medium;
-    background: black;
-    // border-radius: $spacing-extra-large;
-    color:white;
-    // padding: 0 $spacing-small;
-    // width:$spacing-large;
-    // height:$spacing-large;
-    // line-height: $spacing-large;
-    text-align: center;
-  }
-  .step{
-    // margin-top: -$spacing-large;
-    // padding-left: $spacing-large;
-    // padding-bottom: $spacing-large;
-    border-left:1px solid black;
+// #collection-summary {
+//   display: inline-block !important;
+// }
 
-    &:last-of-type {
-      border:none;
-    }
-
-    .step-title{
-      // @include secondary-font(400);
-      font-size:1.2rem;
-      // margin-bottom: $spacing-small;
-    }
-  }
-}
-
-#app {
-  height: 100%;
-}
-
-#clear-results {
-  display: inline-block !important;
-  margin-left: 10px;
-  font-size: 14px;
-}
-
-#collection-summary {
-  display: inline-block !important;
-}
-
-#data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .stack>thead>tr>th {
-  position: sticky;
-  top: -2px !important;
-  z-index: 2;
-  border-left:1px solid white;
-}
+// #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .stack>thead>tr>th {
+//   position: sticky;
+//   top: -2px !important;
+//   z-index: 2;
+//   border-left:1px solid white;
+// }
 
 #results-summary{
   height: 45px;
@@ -879,206 +846,187 @@ button {
   border-width: 2px 0 0 0 ;
 }
 
-// .bottom-half #data-panel-container #lower-toggle-tab {
-//   // position: fixed;
-//   top: calc(60% - 10px);
+// .logo {
+//   line-height: 4em;
+//   padding-left: 10px;
+//   width: auto;
 // }
 
-// .bottom-full #data-panel-container #lower-toggle-tab {
-//   // position: relative;
-//   top: 87px;
+// .bottom-full {
+//   overflow-y: auto;
+//   flex: 1;
 // }
 
-.bottom-half #data-panel-container #lower-toggle-tab {
-    // add height from #results-summary
-    top: calc(60% - 25px) !important;
-}
+// .bottom-half {
+//   overflow-y: auto;
+//   flex: 2;
+// }
 
-.logo {
-  line-height: 4em;
-  padding-left: 10px;
-  width: auto;
-}
+// .bottom-none {
+//   // overflow-y: auto;
+//   // flex: 0;
+//   // display: none;
+// }
 
-.bottom-full {
-  overflow-y: auto;
-  flex: 1;
-}
+// .condo-button {
+//   background-color: #5555;
+//   height: 100%;
+//   width: 100%;
+//   text-transform: unset;
+//   font-family: "Open Sans", Helvetica, Roboto, Arial, sans-serif;
+//   font-weight: 600;
+//   padding: 10.5px 0 10.5px 0;
+// }
 
-.bottom-half {
-  overflow-y: auto;
-  flex: 2;
-}
-.bottom-none {
-  overflow-y: auto;
-  flex: 0;
-  display: none;
-}
+// .leaflet-top, .leaflet-bottom {
+//   z-index: 999 !important;
+// }
 
-.condo-button {
-  background-color: #5555;
-  height: 100%;
-  width: 100%;
-  text-transform: unset;
-  font-family: "Open Sans", Helvetica, Roboto, Arial, sans-serif;
-  font-weight: 600;
-  padding: 10.5px 0 10.5px 0;
-}
+// .modal-opacity {
+//   opacity: 0.2;
+// }
 
-.leaflet-top, .leaflet-bottom {
-  z-index: 999 !important;
-}
+// .pvc-horizontal-table-controls {
+//   margin-bottom: 0 !important;
+// }
 
-.modal-opacity {
-  opacity: 0.2;
-}
+// .pvc-horizontal-table-body {
+//   padding-top: 0 !important;
+//   margin-top: 0 !important;
+// }
 
-.pvc-horizontal-table-controls {
-  margin-bottom: 0 !important;
-}
+// .pointer {
+//   cursor: pointer;
+// }
 
-.pvc-horizontal-table-body {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
+// .top-half {
+//   flex: 3;
+// }
 
-.pointer {
-  cursor: pointer;
-}
+// .top-full {
+//   flex: 1;
+// }
 
-.top-half {
-  flex: 3;
-}
+// .top-none {
+//   flex: 0;
+// }
 
-.top-full {
-  flex: 1;
-}
+// .bottom-half #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
+//   clear:both;
+//   z-index: 999;
+//   top: calc(60% - 7px);
+//   // right: 70px;
+// }
+// .bottom-full #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
+//   clear:both;
+//   z-index: 999;
+//   top: 93px;
+// }
 
-.top-none {
-  flex: 0;
-}
+// @media print {
 
-.bottom-half #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
-  clear:both;
-  z-index: 999;
-  top: calc(60% - 7px);
-  // right: 70px;
-}
-.bottom-full #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
-  clear:both;
-  z-index: 999;
-  top: 93px;
-}
+//   .grid-y.medium-grid-frame#application {
+//     overflow: visible;
+//   }
 
-@media print {
+//   #map-panel-container {
+//     overflow: visible;
+//   }
 
-  .grid-y.medium-grid-frame#application {
-    overflow: visible;
-  }
+//   #results-summary {
+//     display: none;
+//   }
 
-  #map-panel-container {
-    overflow: visible;
-  }
+//   @page {
+//     margin-top: .5in;
+//     size: 8.5in 11in;
+//   }
 
-  #results-summary {
-    display: none;
-  }
+// }
 
-  @page {
-    margin-top: .5in;
-    size: 8.5in 11in;
-  }
+// @media screen and (min-width: 46.875em) {
 
-}
+//   body {
+//     overflow: hidden;
+//   }
 
-@media screen and (min-width: 46.875em) {
-
-  body {
-    overflow: hidden;
-  }
-
-}
+// }
 
 @media screen and (max-width: 750px) {
 
-  #map-panel-container {
-    height: 400px;
-  }
+  // #map-panel-container {
+  //   height: 400px;
+  // }
 
-  #cyclomedia-container {
-    height: 200px
-  }
-
-
-  .main-content{
-    position: inherit;
-  }
-
-  .pl-alert {
-    height: 100% !important;
-  }
-
-  .pl-alert-body {
-    width: 100% !important;
-  }
-
-  .pl-alert-close-button {
-  color: lightgrey !important;
-
-  }
-
-  #demo-badge {
-    top: 25%;
-    width: max-content;
-  }
-
-  #demo-container {
-    padding-left: 15px;
-    position: relative;
-  }
+  // #cyclomedia-container {
+  //   height: 200px
+  // }
 
 
-  .pvc-download-data-button, .pvc-export-data-button {
-    visibility: hidden;
-    // clear:both;
-    // z-index: 999;
-    // top: 393px;
-  }
+  // .main-content{
+  //   position: inherit;
+  // }
 
-  .leaflet-draw-actions {
-      left: 42px !important;
-  }
+  // .pl-alert {
+  //   height: 100% !important;
+  // }
 
-  .logo {
-    margin-top: auto;
-    margin-bottom: auto;
-  }
+  // .pl-alert-body {
+  //   width: 100% !important;
+  // }
 
-  .app-header .cell .shrink {
-    width: 100%;
-  }
+  // .pl-alert-close-button {
+  // color: lightgrey !important;
 
-  .app-divide {
-    margin-bottom: 0;
-    border: none;
-  }
+  // }
 
-  .app-title {
-    font-family: 'Montserrat';
-   h2 {
-    font-size: 13px!important;
-    letter-spacing: 2.5px;
-    font-weight: 200;
-   }
-  }
+  // #demo-badge {
+  //   top: 25%;
+  //   width: max-content;
+  // }
+
+  // #demo-container {
+  //   padding-left: 15px;
+  //   position: relative;
+  // }
 
 
+  // .pvc-download-data-button, .pvc-export-data-button {
+  //   visibility: hidden;
+  // }
 
-  .mobile-menu-content {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-  }
+  // .leaflet-draw-actions {
+  //     left: 42px !important;
+  // }
+
+  // .logo {
+  //   margin-top: auto;
+  //   margin-bottom: auto;
+  // }
+
+  // .app-header .cell .shrink {
+  //   width: 100%;
+  // }
+
+  // .app-divide {
+  //   margin-bottom: 0;
+  //   border: none;
+  // }
+
+  // .app-title {
+  //   font-family: 'Montserrat';
+  //  h2 {
+  //   font-size: 13px!important;
+  //   letter-spacing: 2.5px;
+  //   font-weight: 200;
+  //  }
+  // }
+
+  // .mobile-menu-content {
+  //   position: fixed;
+  //   bottom: 0;
+  //   width: 100%;
+  // }
 
   #results-summary{
     height: 35px;
@@ -1092,62 +1040,48 @@ button {
   }
 
 
-  thead {
-    display: none;
-  }
+//   thead {
+//     display: none;
+//   }
 
-  td {
-    clear: both;
-    border: none !important;
-  }
+//   td {
+//     clear: both;
+//     border: none !important;
+//   }
 
-  th {
-    border: 1px solid white !important;
-    font-size: unset !important;
-  }
+//   th {
+//     border: 1px solid white !important;
+//     font-size: unset !important;
+//   }
 
-  tbody th, tbody td {
-    padding: 0.28571rem 0.35714rem 0.35714rem;
-  }
+//   tbody th, tbody td {
+//     padding: 0.28571rem 0.35714rem 0.35714rem;
+//   }
 
-  td div svg {
-    float: right
-  }
+//   td div svg {
+//     float: right
+//   }
 
-}
+// }
 
-.step-group{
-  // margin-left:$spacing-medium;
+// .step-group{
+//   .step-label {
+//     display: inline-block;
+//     background: black;
+//     color:white;
+//     text-align: center;
+//   }
+//   .step{
+//     border-left:1px solid black;
 
-  .step-label {
-    // @include secondary-font(400);
-    display: inline-block;
-    // margin-left: -$spacing-medium;
-    background: black;
-    // border-radius: $spacing-extra-large;
-    color:white;
-    // padding: 0 $spacing-small;
-    // width:$spacing-large;
-    // height:$spacing-large;
-    // line-height: $spacing-large;
-    text-align: center;
-  }
-  .step{
-    // margin-top: -$spacing-large;
-    // padding-left: $spacing-large;
-    // padding-bottom: $spacing-large;
-    border-left:1px solid black;
+//     &:last-of-type {
+//       border:none;
+//     }
 
-    &:last-of-type {
-      border:none;
-    }
-
-    .step-title{
-      // @include secondary-font(400);
-      font-size:1.2rem;
-      // margin-bottom: $spacing-small;
-    }
-  }
+//     .step-title{
+//       font-size:1.2rem;
+//     }
+//   }
 }
 
 </style>

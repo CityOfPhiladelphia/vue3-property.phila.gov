@@ -53,13 +53,27 @@ const sitePath = computed(() => {
   // MapStore.map.resize();
 // })
 
+const leftPanelClass = computed(() => {
+  if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
+    return 'left-panel-class';
+  } else {
+    return 'left-panel-class-data-open';
+  }
+  // if (isMobileOrTablet.value) {
+  //   return 'left-panel mobile';
+  // } else {
+  //   return 'left-panel';
+  // }
+});
+
+
 </script>
 
 <template>
-  <full-screen-topics-toggle-tab />
+  <!-- <full-screen-topics-toggle-tab /> -->
   <div
     id="intro-container"
-    class="small-24 small-order-2 medium-12 medium-order-1"
+    :class="leftPanelClass"
   >
     <!-- v-show="loadingData" -->
     <div

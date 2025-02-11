@@ -35,13 +35,34 @@ a {
   margin-top: 0px !important;
 }
 
+.main-column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0px !important;
+}
+
+.main-row-full {
+  display: flex;
+  flex-direction: row;
+  padding: 0px !important;
+  height: 50%;
+}
+
+.main-row-half {
+  display: flex;
+  flex-direction: row;
+  padding: 0px !important;
+  height: 50%;
+}
+
 .topics-holder {
   display: flex;
   flex-direction: column;
   width: 50% !important;
   padding: 0;
   margin: 0;
-  height: calc(100vh - 110px);
+  // height: calc(100vh - 110px);
 }
 
 .topics-holder-full {
@@ -117,8 +138,20 @@ a {
   height: 50%;
 }
 
+.left-panel-class {
+  height: 100%;
+}
+
+.left-panel-class-data-open {
+  height: 50%;
+}
+
 .map-class {
   height: 100%;
+}
+
+.map-class-data-open {
+  height: 50%;
 }
 
 .map-cover {
@@ -379,27 +412,27 @@ only screen and (max-width: 768px),
   
 }
 
-@media 
-only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
-  .map-panel {
-    height: 500px;
-  }
+// @media 
+// only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
+//   .map-panel {
+//     height: 500px;
+//   }
 
-  .map-class {
-    height: 500px;
-  }
+//   .map-class {
+//     height: 500px;
+//   }
 
-  #topic-panel-no-topics {
-    min-height: calc(100vh - 570px) !important;
-    // height: 60dvh !important;
-  }
+//   #topic-panel-no-topics {
+//     min-height: calc(100vh - 570px) !important;
+//     // height: 60dvh !important;
+//   }
 
-  #topic-panel-content {
-    min-height: calc(100vh - 700px) !important;
-    // height: 60dvh !important;
-  }
+//   #topic-panel-content {
+//     min-height: calc(100vh - 700px) !important;
+//     // height: 60dvh !important;
+//   }
 
-}
+// }
 
 .no-link-at-bottom {
   margin-bottom: 2rem !important;
