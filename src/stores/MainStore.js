@@ -29,7 +29,7 @@ export const useMainStore = defineStore("MainStore", {
       hoveredStateId: null,
       selectedParcelId: null,
       fullScreenMapEnabled: false,
-      fullScreenTopicsEnabled: false,
+      fullScreenDataEnabled: false,
       windowDimensions: {},
 
 
@@ -133,8 +133,8 @@ export const useMainStore = defineStore("MainStore", {
     setFullScreenMapEnabled(payload) {
       this.fullScreenMapEnabled = payload;
     },
-    setFullScreenTopicsEnabled(payload) {
-      this.fullScreenTopicsEnabled = payload;
+    setfullScreenDataEnabled(payload) {
+      this.fullScreenDataEnabled = payload;
     },
     setLocation(payload) {
       this.this.this.map.location.lat = payload.lat;

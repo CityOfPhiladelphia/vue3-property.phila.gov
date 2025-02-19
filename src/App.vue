@@ -43,18 +43,22 @@ const publicPath = '@/assets/';
 let top = 3;
 let bottom = 2;
 let hasData = false;
-let leftPanel = true;
+// let leftPanel = true;
 let isMapVisible = true;
 
 
 // COMPUTED
+const leftPanel = computed(() => {
+  return MainStore.leftPanel;
+});
+
 const isLarge = computed(() => {
   return MainStore.isLarge;
 });
 
 const currentCycloOrientation = computed(() => {
   let value;
-  if (isLarge && !leftPanel) {
+  if (isLarge.value && !leftPanel.value) {
     value = 'horizontal';
   } else {
     value = 'vertical';
@@ -298,19 +302,13 @@ const fullScreenMapEnabled = computed(() => {
   return MainStore.fullScreenMapEnabled;
 });
 
-const fullScreenTopicsEnabled = computed(() => {
-  return MainStore.fullScreenTopicsEnabled;
-});
-
-const mainContentClass = computed(() => {
-  return fullScreenMapEnabled ? 'top-full cell medium-auto grid-x':
-    fullScreenTopicsEnabled ? 'top-none cell medium-auto grid-x':
-      'top-half cell medium-auto grid-x';
+const fullScreenDataEnabled = computed(() => {
+  return MainStore.fullScreenDataEnabled;
 });
 
 const tableClass = computed(() => {
-  return fullScreenMapEnabled ? 'bottom-none medium-auto':
-    fullScreenTopicsEnabled? 'bottom-full medium-auto':
+  return fullScreenMapEnabled.value ? 'bottom-none medium-auto':
+    fullScreenDataEnabled.value ? 'bottom-full medium-auto':
       'bottom-half medium-auto';
 });
 
@@ -318,14 +316,14 @@ const summaryClass = computed(() => {
   return fullScreenMapEnabled ? 'bottom-none': "";
 });
 
-const shouldKeepLeftPanel = computed(() => {
-  if (!MainStore.leftPanel) {
-    // console.log('App.vue shouldKeepLeftPanel if');
-    return false;
-  }
-  // console.log('App.vue shouldKeepLeftPanel outside if');
-  return true;
-});
+// const shouldKeepLeftPanel = computed(() => {
+//   if (!MainStore.leftPanel) {
+//     // console.log('App.vue shouldKeepLeftPanel if');
+//     return false;
+//   }
+//   // console.log('App.vue shouldKeepLeftPanel outside if');
+//   return true;
+// });
 
 const shouldLoadCyclomediaWidget = computed(() => {
   return $config.cyclomedia.enabled;
@@ -412,12 +410,12 @@ watch(
   }
 });
 
-watch(
-  () => leftPanel.value,
-  () =>{
-  // console.log("intro page watcher: ", leftPanel)
-  leftPanel === false ? closeModal() : ""
-});
+// watch(
+//   () => leftPanel.value,
+//   () =>{
+//   // console.log("intro page watcher: ", leftPanel)
+//   leftPanel === false ? closeModal() : ""
+// });
 
 watch(
   () => activeModal.value,
@@ -460,30 +458,29 @@ watch(
   }
 });
 
-watch(
-  () => ownerSearchTotal.value,
-  (newValue) => {
-  if( newValue > MainStore.ownerSearch.data.length ){
-    MainStore.setOwnerSearchModal(true);
-  }
-});
+// watch(
+//   () => ownerSearchTotal.value,
+//   (newValue) => {
+//   if( newValue > MainStore.ownerSearch.data.length ){
+//     MainStore.setOwnerSearchModal(true);
+//   }
+// });
 
-watch(
-  () => ownerSearchStatus.value,
-  (nextOwnerSearchStatus) => {
-  if (nextOwnerSearchStatus === 'waiting') {
-    onDataChange('ownerSearch');
-  }
-});
+// watch(
+//   () => ownerSearchStatus.value,
+//   (nextOwnerSearchStatus) => {
+//   if (nextOwnerSearchStatus === 'waiting') {
+//     onDataChange('ownerSearch');
+//   }
+// });
 
-watch(
-  () => shouldKeepLeftPanel.value,
-  (nextShouldKeepLeftPanel) => {
-  if (nextShouldKeepLeftPanel === false) {
-    // console.log('in watch shouldKeepLeftPanel if, next:', nextShouldKeepLeftPanel);
-    leftPanel = false;
-  }
-});
+// watch(
+//   () => MainStore.leftPanel,
+//   (nextLeftPanel) => {
+//   if (nextLeftPanel === false) {
+//     leftPanel = false;
+//   }
+// });
 
 watch(
   () => activeModalFeature.value,
@@ -506,14 +503,6 @@ onMounted(async () => {
   reactToRoute();
   handleWindowResize();
 });
-
-// onBeforeMount(async () => {
-//   window.addEventListener('resize', onResize);
-// });
-
-// onBeforeUnmount(async => {
-//   window.removeEventListener('resize', onResize);
-// });
 
 // METHODS
 
@@ -572,9 +561,9 @@ const closePropertyModal = async() => {
 
 const openLeftPanel = (value) => {
   console.log('App.vue openLeftPanel is running, value:', value);
-  leftPanel = value
+  // leftPanel = value
   MainStore.setLeftPanel(value);
-  MainStore.setFullScreenMapEnabled(!value);
+  // MainStore.setFullScreenMapEnabled(!value);
 };
 
 const onDataChange = (type) => {
@@ -641,9 +630,9 @@ const showModal = () => {
   toggleBodyClass('no-scroll');
 };
 
-const closeModal = () => {
-  toggleBodyClass('no-scroll');
-};
+// const closeModal = () => {
+//   toggleBodyClass('no-scroll');
+// };
 
 const toggleBodyClass = (className) => {
   const el = document.body;
@@ -662,8 +651,31 @@ const links = [
 ];
 
 const mainRowClass = computed(() => {
-  return 'main-row-full';
+  return leftPanel.value ? 'top-full':
+    fullScreenMapEnabled.value ? 'top-full':
+    fullScreenDataEnabled.value ? 'top-none':
+      'top-half';
 });
+
+const mapPanelHolderClass = computed(() => {
+  if (leftPanel.value) {
+    return 'map-panel-holder';
+  } else {
+    return 'map-panel-holder-full-width';
+  }
+});
+
+const leftPanelHolderClass = computed(() => {
+  if (leftPanel.value) {
+    return 'left-panel-holder';
+  } else {
+    return 'left-panel-holder-hidden';
+  }
+});
+
+// const mainRowClass = computed(() => {
+//   return 'main-row-full';
+// });
 
 </script>
 
@@ -694,25 +706,26 @@ const mainRowClass = computed(() => {
       class="main-column invisible-scrollbar"
     >
       <div
+        v-show="!fullScreenDataEnabled"
         id="main-row"
-        :class="mainRowClass"
+        :class="'main-row ' + mainRowClass"
       >
-        <!-- TOPIC PANEL ON LEFT -->
+        <!-- LEFT PANEL ON LEFT -->
         <div
           v-if="!isMobileDevice() && MainStore.windowDimensions.width > 768 && !fullScreenMapEnabled"
-          class="topics-holder"
-          :class="fullScreenTopicsEnabled ? 'topics-holder-full' : ''"
+          :class="leftPanelHolderClass"
         >
+        <!-- :class="fullScreenDataEnabled ? 'left-panel-holder-full' : ''" -->
           <left-panel
             :foundItemsLength="foundItemsLength"
           />
         </div>
 
         <div
-          v-show="!fullScreenTopicsEnabled"
-          class="map-panel-holder"
-          :class="fullScreenMapEnabled ? 'topics-holder-full' : ''"
+          :class="mapPanelHolderClass"
         >
+        <!-- v-show="!fullScreenDataEnabled" -->
+        <!-- :class="fullScreenMapEnabled ? 'left-panel-holder-full' : ''" -->
           <map-panel />
         </div>
 
@@ -742,9 +755,9 @@ const mainRowClass = computed(() => {
         </div>
       </div>
         
-      <div :class="tableClass">
-        <data-panel />
-      </div>
+      <!-- <div :class="tableClass"> -->
+      <data-panel />
+      <!-- </div> -->
     </div> <!-- end of main-column -->
 
   </div> <!-- end of main -->
@@ -899,17 +912,18 @@ const mainRowClass = computed(() => {
 //   cursor: pointer;
 // }
 
-// .top-half {
-//   flex: 3;
-// }
+.top-half {
+  // flex: 3;
+  height: 50%;
+}
 
-// .top-full {
-//   flex: 1;
-// }
+.top-full {
+  flex: 1;
+}
 
-// .top-none {
-//   flex: 0;
-// }
+.top-none {
+  flex: 0;
+}
 
 // .bottom-half #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
 //   clear:both;

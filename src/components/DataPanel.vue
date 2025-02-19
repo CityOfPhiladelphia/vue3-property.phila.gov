@@ -8,6 +8,10 @@ import { useMapStore } from '@/stores/MapStore.js';
 const MapStore = useMapStore();
 import { useDatafetchStore } from '@/stores/DatafetchStore.js';
 const DatafetchStore = useDatafetchStore();
+import { useOpaStore } from '@/stores/OpaStore.js';
+const OpaStore = useOpaStore();
+import { useGeocodeStore } from '@/stores/GeocodeStore.js';
+const GeocodeStore = useGeocodeStore();
 
 import { format, parseISO } from 'date-fns';
 import helpers from '../util/helpers';
@@ -20,6 +24,7 @@ const formatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
 });
 
+import HorizontalTable from './HorizontalTable.vue';
 // import PropertyCard from './PropertyCard.vue';
 
 // components
@@ -28,7 +33,7 @@ const formatter = new Intl.NumberFormat('en-US', {
 // BadgeCustom: () => import(/* webpackChunkName: "pvc_BadgeCustom" */'@phila/vue-comps/src/components/BadgeCustom.vue'),
 // CollectionSummary: () => import(/* webpackChunkName: "pvc_CollectionSummary" */'@phila/vue-comps/src/components/CollectionSummary.vue'),
 // ExternalLink: () => import(/* webpackChunkName: "pvc_ExternalLink" */'@phila/vue-comps/src/components/ExternalLink.vue'),
-// FullScreenTopicsToggleTabVertical: () => import(/* webpackChunkName: "pvc_FullScreenTopicsToggleTabVertical" */'@phila/vue-comps/src/components/FullScreenTopicsToggleTabVertical.vue'),
+// FullScreenDataToggleTab: () => import(/* webpackChunkName: "pvc_FullScreenDataToggleTab" */'@phila/vue-comps/src/components/FullScreenDataToggleTab.vue'),
 // HorizontalTable: () => import(/* webpackChunkName: "pvc_HorizontalTable" */'@phila/vue-comps/src/components/HorizontalTable.vue'),
 // VerticalTable: () => import(/* webpackChunkName: "pvc_VerticalTable" */'@phila/vue-comps/src/components/VerticalTable.vue'),
   
@@ -47,11 +52,11 @@ const loadingData = computed(() => {
 });
 
 const lastSearchMethod = computed(() => {
-  return DatafetchStore.lastSearchMethod;
+  return MainStore.lastSearchMethod;
 });
 
 const opa = computed(() => {
-  return MainStore.sources.opa_assessment;
+  return OpaStore.opa_assessment;
 });
 
 const opaStatus = computed(() => {
@@ -63,23 +68,23 @@ const opaStatus = computed(() => {
 });
 
 const geocode = computed(() => {
-  return DatafetchStore.geocode;
+  return GeocodeStore.aisData;
 });
 
 const geocodeInput = computed(() => {
-  return DatafetchStore.geocode.input;
+  return GeocodeStore.aisData.query;
 });
 
 const geocodeStatus = computed(() => {
-  return DatafetchStore.geocode.status;
+  return GeocodeStore.geocodeStatus;
 });
 
 const geocodeItems = computed(() => {
   let data = [];
-  // if (!condoExpanded.value && geocode.value.data && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties && DatafetchStore.lastSearchMethod === 'geocode') {
-  if (!condoExpanded.value && geocode.value.data && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
-  // if (geocode.value.data && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
-    const parentCondo = geocode.value.data;
+  // if (!condoExpanded.value && geocode.value.features[0] && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties && MainStore.lastSearchMethod === 'geocode') {
+  if (!condoExpanded.value && geocode.value.features[0] && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
+  // if (geocode.value.features[0] && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
+    const parentCondo = geocode.value.features[0];
     console.log('in geocodeItems, in if, parentCondo:', parentCondo);
     for (let i in parentCondo.properties) {
       parentCondo.properties[i] = "";
@@ -94,9 +99,9 @@ const geocodeItems = computed(() => {
     // parentCondo.condo = true;
     data.push(parentCondo);
   } else {
-    console.log('in geocodeItems, in else, geocode.value.data:', geocode.value.data, 'geocode.value.related:', geocode.value.related);
-    if (geocode.value.data) {
-      data.push(geocode.value.data);
+    console.log('in geocodeItems, in else, geocode.value.features[0]:', geocode.value.features[0], 'geocode.value.related:', geocode.value.related);
+    if (geocode.value.features[0]) {
+      data.push(geocode.value.features[0]);
     }
     if (geocode.value.related) {
       for (let related of geocode.value.related) {
@@ -116,10 +121,10 @@ const geocodeOptions = computed(() => {
     clickEnabled: true,
     downloadButton: false,
     expandDataDownload: true,
-    mailingFields: mailingFields(),
+    mailingFields: getMailingFields(),
     tableSort: tableSort(),
     expandedData: expandedData(),
-    rowAction: rowClick(),
+    rowAction: rowClick,
     colSpan: {
       condition: 'condo',
       column: 'Market Value',
@@ -147,9 +152,10 @@ const geocodeOptions = computed(() => {
       {
         label: 'Street Address',
         shouldBeBold: true,
-        value: function(state, item) {
+        value: function(item) {
+          console.log('in Street Address, item:', item);
           let address;
-          if( state.lastSearchMethod === "buffer search") {
+          if(MainStore.lastSearchMethod === "buffer search") {
             address = titleCase(item.address_std);
           } else if (typeof item.properties.street_address != 'undefined') {
             address = titleCase(item.properties.street_address);
@@ -161,14 +167,14 @@ const geocodeOptions = computed(() => {
         customStyle: { float: 'left', 'padding-right': '5px' },
         customClass: "address-field faux-link",
         mobileIcon: "info-circle",
-        hideMobileIcon: (state, item) => typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined' ? true : false ,
+        hideMobileIcon: (state, item) => typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined' ? true : false ,
       },
       {
         label: 'Market Value',
-        value: function(state, item){
-          if(state.sources.opa_assessment.targets[item.properties.opa_account_num]){
-            if(typeof state.sources.opa_assessment.targets[item.properties.opa_account_num].data != 'undefined') {
-              return formatter.format(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.market_value);
+        value: function(item){
+          if(OpaStore.opa_assessment.targets[item.properties.opa_account_num]){
+            if(typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num].data != 'undefined') {
+              return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].market_value);
             }
           } else {
             return '';
@@ -179,7 +185,7 @@ const geocodeOptions = computed(() => {
             type: 'button-comp',
             slots: {
               text: 'Click to add units to results.',
-              buttonAction: addCondoRecords(),
+              buttonAction: addCondoRecords,
               buttonFinished() {
                 // console.log("button finished running")
                 showTable.value = true;
@@ -187,17 +193,17 @@ const geocodeOptions = computed(() => {
             },
             options: {
               class: function (state, item) {
-                // console.log('calculating button-comp class, item.properties.opa_account_num:', item.properties.opa_account_num, typeof state.sources.opa_assessment.targets[item.properties.opa_account_num]);
-                // return state.sources.opa_assessment.targets[item.properties.opa_account_num] ? "" : 'condo-button';
-                if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+                // console.log('calculating button-comp class, item.properties.opa_account_num:', item.properties.opa_account_num, typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num]);
+                // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? "" : 'condo-button';
+                if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
                   return '';
                 } else {
                   return 'condo-button';
                 }
               },
               style: function (state, item) {
-                // return state.sources.opa_assessment.targets[item.properties.opa_account_num] ? { display: 'none' } : "";
-                if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+                // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? { display: 'none' } : "";
+                if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
                   return { display: 'none' };
                 } else {
                   return '';
@@ -209,12 +215,12 @@ const geocodeOptions = computed(() => {
       },
       {
         label: 'Date of Last Sale',
-        value: function(state, item) {
+        value: function(item) {
           if (item.properties.opa_account_num != ""){
-            if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
-              // return format(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date, 'MM/DD/YYYY');
-              if (state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date != null) {
-              return format(parseISO(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date), 'MM/dd/yyyy');
+            if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+              // return format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date, 'MM/DD/YYYY');
+              if (OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date != null) {
+              return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date), 'MM/dd/yyyy');
               } else {
                 return "Not Applicable"
               }
@@ -223,11 +229,11 @@ const geocodeOptions = computed(() => {
             return "Not Applicable"
           }
         },
-        customKey: function(state, item) {
+        customKey: function(item) {
           if (item.properties.opa_account_num != "") {
-            if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined' && state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date != null) {
-              // console.log(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date);
-              return format(parseISO(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date), 'yyyyMMdd');
+            if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined' && OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date != null) {
+              // console.log(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date);
+              return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date), 'yyyyMMdd');
             }
             return;
 
@@ -238,11 +244,11 @@ const geocodeOptions = computed(() => {
       },
       {
         label: 'Price of Last Sale',
-        value: function(state, item) {
+        value: function(item) {
           if(item.properties.opa_account_num != ""){
-            if(typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined'){
-              if(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_price != null) {
-                return formatter.format(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_price);
+            if(typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined'){
+              if(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_price != null) {
+                return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_price);
               } else {
                 return "Not Applicable"
               }
@@ -254,7 +260,7 @@ const geocodeOptions = computed(() => {
       },
       {
         label: 'Owner',
-        value: function(state, item){
+        value: function(item){
           if (item.properties.opa_owners != '' && typeof item.properties.opa_owners != 'undefined') {
             return item.properties.opa_owners.join(', ');
           }
@@ -268,7 +274,7 @@ const geocodeOptions = computed(() => {
 });
 
 const ownerOptions = computed(() => {
-  const rowClick = rowClick();
+  // const rowClick = rowClick();
   const options = {
     id: 'ownerProperties',
     tableid: 'bbb',
@@ -277,10 +283,10 @@ const ownerOptions = computed(() => {
     clickEnabled: true,
     downloadButton: false,
     expandDataDownload: true,
-    mailingFields: mailingFields(),
+    mailingFields: getMailingFields(),
     tableSort: tableSort(),
     expandedData: expandedData(),
-    rowAction: rowClick(),
+    rowAction: rowClick,
     colSpan: {
       condition: 'condo',
       column: 'Market Value',
@@ -308,7 +314,7 @@ const ownerOptions = computed(() => {
       {
         label: 'Street Address',
         customClass: "address-field faux-link",
-        value: function(state, item) {
+        value: function(item) {
           // console.log(item.properties)
           return titleCase(item.properties.opa_address);
         },
@@ -318,10 +324,10 @@ const ownerOptions = computed(() => {
       },
       {
         label: 'Market Value',
-        value: function(state, item){
-          if(state.sources.opa_assessment.targets[item.properties.opa_account_num]){
-            if(typeof state.sources.opa_assessment.targets[item.properties.opa_account_num].data != 'undefined') {
-                  return formatter.format(state.sources.opa_assessment.targets[item.properties.opa_account_num.toString()].data.market_value);
+        value: function(item){
+          if(OpaStore.opa_assessment.targets[item.properties.opa_account_num]){
+            if(typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num].data != 'undefined') {
+                  return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num.toString()].data.market_value);
             }
           } else {
             return '';
@@ -332,7 +338,7 @@ const ownerOptions = computed(() => {
             type: 'button-comp',
             slots: {
               text: 'Click to add units to results.',
-              buttonAction: addCondoRecords(),
+              buttonAction: addCondoRecords,
               buttonFinished() {
                 // console.log("button finished running")
                 showTable.value = true;
@@ -340,17 +346,17 @@ const ownerOptions = computed(() => {
             },
             options: {
               class: function (state, item) {
-                // console.log('calculating button-comp class, item.properties.opa_account_num:', item.properties.opa_account_num, typeof state.sources.opa_assessment.targets[item.properties.opa_account_num]);
-                // return state.sources.opa_assessment.targets[item.properties.opa_account_num] ? "" : 'condo-button';
-                if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+                // console.log('calculating button-comp class, item.properties.opa_account_num:', item.properties.opa_account_num, typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num]);
+                // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? "" : 'condo-button';
+                if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
                   return '';
                 } else {
                   return 'condo-button';
                 }
               },
               style: function (state, item) {
-                // return state.sources.opa_assessment.targets[item.properties.opa_account_num] ? { display: 'none' } : "";
-                if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+                // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? { display: 'none' } : "";
+                if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
                   return { display: 'none' };
                 } else {
                   return '';
@@ -363,22 +369,22 @@ const ownerOptions = computed(() => {
 
       {
         label: 'Date of Last Sale',
-        value: function(state, item) {
+        value: function(item) {
           if (item.properties.opa_account_num != ""){
-            if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
-              // console.log(item.properties.opa_account_num, state.sources.opa_assessment.targets[item.properties.opa_account_num] )
-              // return format(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date, 'MM/DD/YYYY');
-              return format(parseISO(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date.toString()), 'MM/dd/yyyy');
+            if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+              // console.log(item.properties.opa_account_num, OpaStore.opa_assessment.targets[item.properties.opa_account_num] )
+              // return format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date, 'MM/DD/YYYY');
+              return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date.toString()), 'MM/dd/yyyy');
             }
           } else {
             return "Not Applicable";
           }
         },
-        customKey: function(state, item) {
+        customKey: function(item) {
           if (item.properties.opa_account_num != "") {
-            if (typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
-              // console.log(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date);
-              return format(parseISO(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date.toString()), 'yyyyMMdd');
+            if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+              // console.log(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date);
+              return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date.toString()), 'yyyyMMdd');
             }
             return;
 
@@ -390,23 +396,23 @@ const ownerOptions = computed(() => {
 
       // {
       //   label: 'Date of Last Sale',
-      //   value: function(state, item) {
-      //     // return format(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date.toString(), 'MM/DD/YYYY');
-      //     return format(parseISO(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date.toString()), 'MM/dd/yyyy');
+      //   value: function(item) {
+      //     // return format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date.toString(), 'MM/DD/YYYY');
+      //     return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date.toString()), 'MM/dd/yyyy');
       //   },
-      //   customKey: function(state, item) {
-      //     // return format(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date.toString(), 'MM/DD/YYYY');
-      //     return format(parseISO(state.sources.opa_assessment.targets[item.properties.opa_account_num].data.sale_date.toString()), 'yyyyMMdd');
+      //   customKey: function(item) {
+      //     // return format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date.toString(), 'MM/DD/YYYY');
+      //     return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date.toString()), 'yyyyMMdd');
       //   },
       // },
 
 
       {
         label: 'Price of Last Sale',
-        value: function(state, item) {
+        value: function(item) {
           if(item.properties.opa_account_num != ""){
-            if(typeof state.sources.opa_assessment.targets[item.properties.opa_account_num] != 'undefined'){
-                return formatter.format(state.sources.opa_assessment.targets[item.properties.opa_account_num.toString()].data.sale_price);
+            if(typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined'){
+                return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num.toString()].data.sale_price);
             }
           } else {
             return "Not Applicable";
@@ -416,13 +422,13 @@ const ownerOptions = computed(() => {
 
       // {
       //   label: 'Price of Last Sale',
-      //   value: function(state, item) {
-      //     return formatter.format(state.sources.opa_assessment.targets[item.properties.opa_account_num.toString()].data.sale_price);
+      //   value: function(item) {
+      //     return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num.toString()].data.sale_price);
       //   },
       // },
       {
         label: 'Owner',
-        value: function(state, item){
+        value: function(item){
           if (item.properties.opa_owners != '') {
             return item.properties.opa_owners.lrength > 1 ? item.properties.opa_owners.join(', ') : item.properties.opa_owners;
           }
@@ -459,7 +465,7 @@ const shapeOptions = computed(() => {
     clickEnabled: true,
     downloadButton: false,
     expandDataDownload: true,
-    mailingFields: mailingFields(),
+    mailingFields: getMailingFields(),
     tableSort: tableSort(),
     expandedData: expandedData(),
     colSpan: {
@@ -467,7 +473,7 @@ const shapeOptions = computed(() => {
       column: 'Market Value',
       span: 3,
     },
-    rowAction: rowClick(),
+    rowAction: rowClick,
     export: {
       formatButtons: {
         csv: {text: ' Download CSV', icon: 'download'},
@@ -490,7 +496,7 @@ const shapeOptions = computed(() => {
       {
         label: 'Street Address',
         customClass: "address-field faux-link",
-        value: function(state, item) {
+        value: function(item) {
           if(item.unit != null && item.unit != "") {
             return titleCase(item.address_std);
           }
@@ -503,7 +509,7 @@ const shapeOptions = computed(() => {
       },
       {
         label: 'Market Value',
-        value: function(state, item){
+        value: function(item){
           if(item.market_value != "") {
             return formatter.format(item.market_value);
           }
@@ -515,7 +521,7 @@ const shapeOptions = computed(() => {
             type: 'button-comp',
             slots: {
               text: 'Click to add units to results.',
-              buttonAction: addCondoRecords(),
+              buttonAction: addCondoRecords,
             },
             options: {
               class: function (state, item) {
@@ -530,7 +536,7 @@ const shapeOptions = computed(() => {
       },
       {
         label: 'Date of Last Sale',
-        value: function(state, item) {
+        value: function(item) {
           if (item.sale_date != "" && item.sale_date != null) {
             // return format(item.sale_date, 'MM/DD/YYYY');
             return format(parseISO(item.sale_date), 'MM/dd/yyyy');
@@ -538,7 +544,7 @@ const shapeOptions = computed(() => {
           return "Not Applicable";
 
         },
-        customKey: function(state, item) {
+        customKey: function(item) {
           if (item.sale_date != "" && item.sale_date != null) {
             // console.log(   format(parseISO(item.sale_date), 'yyyyMMdd')  );
             return format(parseISO(item.sale_date), 'yyyyMMdd');
@@ -549,7 +555,7 @@ const shapeOptions = computed(() => {
       },
       {
         label: 'Price of Last Sale',
-        value: function(state, item) {
+        value: function(item) {
           if (item.sale_price != "" && item.sale_price != null) {
             return formatter.format(item.sale_price);
           }
@@ -559,7 +565,7 @@ const shapeOptions = computed(() => {
       },
       {
         label: 'Owner',
-        value: function(state, item){
+        value: function(item){
           if (item.owner_1 != "" && item.owner_1 != null) {
             let owners = item.owner_2 != null ?
               item.owner_1.trim() + ", " + item.owner_2.trim():
@@ -628,8 +634,8 @@ const opaPublicData = (item) => {
     MainStore.sources.opa_public.targets[activeOpaId(item)].data;
 };
 
-const addCondoRecords = (state, item) => {
-  console.log('addCondoRecords is running, item:', item);
+const addCondoRecords = () => {
+  console.log('addCondoRecords is running');
 
   showTable.value = false;
   condoExpanded.value = true;
@@ -648,7 +654,7 @@ const addCondoRecords = (state, item) => {
   mapUnitIds = mapUnitIds.bind(this);
   // console.log('after mapUnitIds', item);
   let unitData;
-  if (DatafetchStore.lastSearchMethod === 'block search') {
+  if (MainStore.lastSearchMethod === 'block search') {
       let result = DatafetchStore.blockSearch.data.filter(
       row => row._featureId === item._featureId,
     );
@@ -673,19 +679,19 @@ const addCondoRecords = (state, item) => {
   // $controller.dataManager.fetchData();
 
 
-  } else if (DatafetchStore.lastSearchMethod === 'geocode') {
+  } else if (MainStore.lastSearchMethod === 'geocode') {
     // $controller.dataManager.resetData();
     condoExpanded.value = true;
     const input = MainStore.parcels.pwd ?
             MainStore.parcels.pwd[0].properties.ADDRESS :
-            DatafetchStore.geocode.data.properties.opa_address;
+            GeocodeStore.aisData.features[0].properties.opa_address;
     // $controller.dataManager.clients.condoSearch.fetch(input);
     unitData = mapUnitIds(item._featureId);
     // console.log('in addCondoRecords, lastSearchMethod = geocode');
     DatafetchStore.setGeocodeRelated(unitData);
     // $controller.dataManager.fetchData();
-  } else if (DatafetchStore.lastSearchMethod === 'reverseGeocode' ) {
-  // if (DatafetchStore.lastSearchMethod === 'reverseGeocode' || DatafetchStore.lastSearchMethod === 'geocode') {
+  } else if (MainStore.lastSearchMethod === 'reverseGeocode' ) {
+  // if (MainStore.lastSearchMethod === 'reverseGeocode' || MainStore.lastSearchMethod === 'geocode') {
     // console.log("Not shape search, input: ", input)
 
     // $controller.dataManager.resetData();
@@ -721,37 +727,40 @@ const addCondoRecords = (state, item) => {
 };
 
 const tableSort = (fields) => {
-
-  Array.prototype.move = function (from, to) {
-    this.splice(to, 0, this.splice(from, 1)[0]);
-  };
-
-  // list needs to be in reverse order
-  let tableReorder = [
-    "Zoning Description",
-    "Zoning Code",
-    "Building Description",
-    "Building Condition",
-    "Land Area (SqFt)",
-    "Improvement Area (SqFt)",
-    "Homestead Exemption",
-    "Price of Last Sale",
-    "Date of Last Sale",
-    "Market Value",
-    "State",
-    "City",
-    "Zip Code",
-    "Street Address",
-    "Owner",
-    "OPA Account Number",
-  ];
-  for ( let sortLabel of tableReorder) {
-    fields.move(fields.map(e => e.label).indexOf(sortLabel), 0);
+  if (fields) {
+    Array.prototype.move = function (from, to) {
+      this.splice(to, 0, this.splice(from, 1)[0]);
+    };
+  
+    // list needs to be in reverse order
+    let tableReorder = [
+      "Zoning Description",
+      "Zoning Code",
+      "Building Description",
+      "Building Condition",
+      "Land Area (SqFt)",
+      "Improvement Area (SqFt)",
+      "Homestead Exemption",
+      "Price of Last Sale",
+      "Date of Last Sale",
+      "Market Value",
+      "State",
+      "City",
+      "Zip Code",
+      "Street Address",
+      "Owner",
+      "OPA Account Number",
+    ];
+    for ( let sortLabel of tableReorder) {
+      fields.move(fields.map(e => e.label).indexOf(sortLabel), 0);
+    }
   }
+
   return fields;
 };
 
 const rowClick = (state, item) => {
+  console.log('rowClick is running, state:', state, 'item:', item);
   let parcel_number;
   if (item.parcel_number) {
     parcel_number = item.parcel_number;
@@ -776,436 +785,438 @@ const rowClick = (state, item) => {
 
 const expandedData = () => {
   // let modalComputed = PropertyCard.computed;
-  let opaPublicData = opaPublicData.value;
-
-  return [
-    {
-      label: 'Zip Code',
-      value: function(item) {
-        let zip = item.properties ? item.properties.zip_code : item.zip_code.substring(0,5);
-        return zip;
+  if (opaPublicData.value) {
+    let opaPublicData = opaPublicData.value;
+  
+    return [
+      {
+        label: 'Zip Code',
+        value: function(item) {
+          let zip = item.properties ? item.properties.zip_code : item.zip_code.substring(0,5);
+          return zip;
+        },
       },
-    },
-    {
-      label: 'City',
-      value: function() {
-        return "Philadelphia";
+      {
+        label: 'City',
+        value: function() {
+          return "Philadelphia";
+        },
       },
-    },
-    {
-      label: 'State',
-      value: function() {
-        return "PA";
+      {
+        label: 'State',
+        value: function() {
+          return "PA";
+        },
       },
-    },
-    {
-      label: 'Improvement Area (SqFt)',
-      value: function(state, item) {
-        let livable_area = opaPublicData(state, item).total_livable_area
-        if (typeof livable_area === 'undefined' || livable_area === "" || livable_area == null){
-          return "";
-        } else {
-          return livable_area.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-          });;
-        }
+      {
+        label: 'Improvement Area (SqFt)',
+        value: function(item) {
+          let livable_area = opaPublicData(state, item).total_livable_area
+          if (typeof livable_area === 'undefined' || livable_area === "" || livable_area == null){
+            return "";
+          } else {
+            return livable_area.toLocaleString('en-US', {
+              maximumFractionDigits: 0,
+            });;
+          }
+        },
       },
-    },
-    {
-      label: 'Land Area (SqFt)',
-      value: function(state, item) {
-        let total_area = opaPublicData(state, item).total_area
-        if (typeof total_area === 'undefined' | total_area === ""){
-          return "";
-        } else {
-            return total_area.toLocaleString('en-US', {
-                    maximumFractionDigits: 0,
-                  });;
-        }
+      {
+        label: 'Land Area (SqFt)',
+        value: function(item) {
+          let total_area = opaPublicData(state, item).total_area
+          if (typeof total_area === 'undefined' | total_area === ""){
+            return "";
+          } else {
+              return total_area.toLocaleString('en-US', {
+                      maximumFractionDigits: 0,
+                    });;
+          }
+        },
       },
-    },
-    {
-      label: 'Building Condition',
-      value: function(state, item) {
-        const cond_code = function(conditionCode) {
-          const condition = conditionCode  == 0 ? 'Not Applicable' :
-            conditionCode  == 1 ? 'Newer Construction' :
-              conditionCode  == 2 ? 'Rehabbed' :
-                conditionCode  == 3 ? 'Above Average' :
-                  conditionCode  == 4 ? 'Average' :
-                    conditionCode  == 5 ? 'Below Average' :
-                      conditionCode  == 6 ? 'Poor' :
-                        conditionCode  == 7 ? 'Sealed / Structurally Compromised' :
-                          conditionCode  == 8 ? 'Sealed / Structurally Compromised' :
-                            'Not available';
-          return condition;
-        };
-        // 3/8/2024 - we set it to use exterior_condition instead of interior_condition
-        // 3/18/2024 - we set it back to useing interior_condition
-        let conditionCode = opaPublicData(state, item).interior_condition
-        if (typeof conditionCode != 'undefined' && conditionCode != "") {
-          return cond_code(conditionCode);
-        } return "";
+      {
+        label: 'Building Condition',
+        value: function(item) {
+          const cond_code = function(conditionCode) {
+            const condition = conditionCode  == 0 ? 'Not Applicable' :
+              conditionCode  == 1 ? 'Newer Construction' :
+                conditionCode  == 2 ? 'Rehabbed' :
+                  conditionCode  == 3 ? 'Above Average' :
+                    conditionCode  == 4 ? 'Average' :
+                      conditionCode  == 5 ? 'Below Average' :
+                        conditionCode  == 6 ? 'Poor' :
+                          conditionCode  == 7 ? 'Sealed / Structurally Compromised' :
+                            conditionCode  == 8 ? 'Sealed / Structurally Compromised' :
+                              'Not available';
+            return condition;
+          };
+          // 3/8/2024 - we set it to use exterior_condition instead of interior_condition
+          // 3/18/2024 - we set it back to useing interior_condition
+          let conditionCode = opaPublicData(state, item).interior_condition
+          if (typeof conditionCode != 'undefined' && conditionCode != "") {
+            return cond_code(conditionCode);
+          } return "";
+        },
       },
-    },
-    {
-      label: 'Building Description',
-      value: function(state, item) {
-        let descriptionNew = opaPublicData(state, item).building_code_description_new;
-        let description = opaPublicData(state, item).building_code_description;
-        if (typeof descriptionNew != 'undefined' && descriptionNew != "") {
-          return descriptionNew;
-        } else if (typeof description != 'undefined' && description != "") {
-          return description;
-        } else {
-          return "";
-        }
+      {
+        label: 'Building Description',
+        value: function(item) {
+          let descriptionNew = opaPublicData(state, item).building_code_description_new;
+          let description = opaPublicData(state, item).building_code_description;
+          if (typeof descriptionNew != 'undefined' && descriptionNew != "") {
+            return descriptionNew;
+          } else if (typeof description != 'undefined' && description != "") {
+            return description;
+          } else {
+            return "";
+          }
+        },
       },
-    },
-    {
-      label: 'Homestead Exemption',
-      value: function(state, item) {
-        let homestead = opaPublicData(state, item).homestead_exemption
-        if (typeof homestead != 'undefined' && homestead != "" ) {
-          return homestead != null ?
-                  homestead.toLocaleString('en-US', {
-                    style: "currency",
-                    currency:"USD",
-                    minimumFractionDigits: 0,
-                  }) : "";
-        } return ""
+      {
+        label: 'Homestead Exemption',
+        value: function(item) {
+          let homestead = opaPublicData(state, item).homestead_exemption
+          if (typeof homestead != 'undefined' && homestead != "" ) {
+            return homestead != null ?
+                    homestead.toLocaleString('en-US', {
+                      style: "currency",
+                      currency:"USD",
+                      minimumFractionDigits: 0,
+                    }) : "";
+          } return ""
+        },
       },
-    },
-    {
-      label: 'OPA Account Number',
-      value: function(state, item) {
-        // console.log("line 761 item: ", item)
-        if(typeof item.parcel_number != 'undefined') {
-          return item.parcel_number
-        } else {
-          return item.properties.opa_account_num
-        }
-
-        // if (state.geocode.status === "success"){
-        //   console.log("line 761 item: ", item)
-        //   return item.properties.opa_account_num;
-        // } else if (state.ownerSearch.status === "success") {
-        //   return item.properties.opa_account_num;
-        // }
-        // return item.parcel_number;
-
+      {
+        label: 'OPA Account Number',
+        value: function(item) {
+          // console.log("line 761 item: ", item)
+          if(typeof item.parcel_number != 'undefined') {
+            return item.parcel_number
+          } else {
+            return item.properties.opa_account_num
+          }
+  
+          // if (state.geocode.status === "success"){
+          //   console.log("line 761 item: ", item)
+          //   return item.properties.opa_account_num;
+          // } else if (state.ownerSearch.status === "success") {
+          //   return item.properties.opa_account_num;
+          // }
+          // return item.parcel_number;
+  
+        },
       },
-    },
-    {
-      label: 'Year Built',
-      value: function(state, item){
-          let yearBuilt = opaPublicData(state, item).year_built;
-          if(typeof yearBuilt != 'undefined' && yearBuilt != ""){
-            yearBuilt = yearBuilt === '0000'? 'Not Available' :
-                        yearBuilt === null? 'Not Available' :
-                        yearBuilt + (opaPublicData(state, item).year_built_estimate ? ' (estimated)' : '');
-            return yearBuilt
+      {
+        label: 'Year Built',
+        value: function(item){
+            let yearBuilt = opaPublicData(state, item).year_built;
+            if(typeof yearBuilt != 'undefined' && yearBuilt != ""){
+              yearBuilt = yearBuilt === '0000'? 'Not Available' :
+                          yearBuilt === null? 'Not Available' :
+                          yearBuilt + (opaPublicData(state, item).year_built_estimate ? ' (estimated)' : '');
+              return yearBuilt
+            } return ''
+        },
+      },
+      {
+        label: 'Number of Stories',
+        value: function(item){
+          let opaPublicDataResult = opaPublicData(state, item);
+          if(typeof opaPublicDataResult != 'undefined' && opaPublicDataResult != ""){
+            return  opaPublicDataResult.number_stories === null ? "Not Available" :
+                    opaPublicDataResult.number_stories.toString().length > 0 ?
+                    opaPublicDataResult.number_stories === 0 ?
+                    opaPublicDataResult.total_livable_area > 0 ? 'Not Available':
+                    'None' :
+                    opaPublicDataResult.number_stories === 1 ? '1 story' :
+                    (opaPublicDataResult.number_stories + ' stories') : ''
           } return ''
-      },
-    },
-    {
-      label: 'Number of Stories',
-      value: function(state, item){
-        let opaPublicDataResult = opaPublicData(state, item);
-        if(typeof opaPublicDataResult != 'undefined' && opaPublicDataResult != ""){
-          return  opaPublicDataResult.number_stories === null ? "Not Available" :
-                  opaPublicDataResult.number_stories.toString().length > 0 ?
-                  opaPublicDataResult.number_stories === 0 ?
-                  opaPublicDataResult.total_livable_area > 0 ? 'Not Available':
-                  'None' :
-                  opaPublicDataResult.number_stories === 1 ? '1 story' :
-                  (opaPublicDataResult.number_stories + ' stories') : ''
-        } return ''
-      },
-    },
-    {
-      label: 'Rooms',
-      value: function(state, item){
-        let rooms = opaPublicData(state, item).number_of_rooms;
-        rooms = !(opaPublicData(state, item).total_livable_area > 0) ? 'None' :
-                    typeof rooms === 'undefined' | rooms === null  ? 'Not Available' :
-                    rooms;
-        return rooms
         },
-    },
-    {
-      label: 'Bedrooms',
-      value: function(state, item){
-        let bedrooms = opaPublicData(state, item).number_of_bedrooms;
-        bedrooms = !(opaPublicData(state, item).total_livable_area > 0) ? 'None' :
-                    typeof bedrooms === 'undefined' | bedrooms === null  ? 'Not Available' :
-                    bedrooms;
-        return bedrooms
+      },
+      {
+        label: 'Rooms',
+        value: function(item){
+          let rooms = opaPublicData(state, item).number_of_rooms;
+          rooms = !(opaPublicData(state, item).total_livable_area > 0) ? 'None' :
+                      typeof rooms === 'undefined' | rooms === null  ? 'Not Available' :
+                      rooms;
+          return rooms
+          },
+      },
+      {
+        label: 'Bedrooms',
+        value: function(item){
+          let bedrooms = opaPublicData(state, item).number_of_bedrooms;
+          bedrooms = !(opaPublicData(state, item).total_livable_area > 0) ? 'None' :
+                      typeof bedrooms === 'undefined' | bedrooms === null  ? 'Not Available' :
+                      bedrooms;
+          return bedrooms
+          },
+      },
+      {
+        label: 'Bathrooms',
+        value: function(item){
+          let bathrooms = opaPublicData(state, item).number_of_bathrooms;
+          bathrooms = !(opaPublicData(state, item).total_livable_area > 0) ? 'None' :
+                      typeof bathrooms === 'undefined' | bathrooms === null  ? 'Not Available' :
+              bathrooms;
+          return bathrooms
         },
-    },
-    {
-      label: 'Bathrooms',
-      value: function(state, item){
-        let bathrooms = opaPublicData(state, item).number_of_bathrooms;
-        bathrooms = !(opaPublicData(state, item).total_livable_area > 0) ? 'None' :
-                    typeof bathrooms === 'undefined' | bathrooms === null  ? 'Not Available' :
-            bathrooms;
-        return bathrooms
       },
-    },
-    {
-        label: 'Features',
-        value: function(state, item) {
-          let basements, fireplaces, garages, buildings, view;
-          let features = [];
-
-          switch (opaPublicData(state, item).basements) {
-          case null: basements= null;
-            break;
-          case '0': basements= null;
-            break;
-          case 'A': basements = 'Full Finished basement';
-            break;
-          case 'B': basements = 'Full Semi-finished basement';
-            break;
-          case 'C': basements = 'Full Unfinished basement';
-            break;
-          case 'D': basements = 'Full basement';
-            break;
-          case 'E': basements = 'Finished partial basement';
-            break;
-          case 'F': basements = 'Semi-finished partial basement';
-            break;
-          case 'G': basements = 'Unfinished partial basement';
-            break;
-          case 'H': basements = 'Partial basement';
-            break;
-          case 'I': basements = 'Finished basement';
-            break;
-          case 'J': basements = 'Unfinished basement';
-            break;
-          }
-
-          fireplaces = opaPublicData(state, item).fireplaces === 1 ?
-            opaPublicData(state, item).fireplaces + ' fireplace' :
-            opaPublicData(state, item).fireplaces === 0 |
-            opaPublicData(state, item).fireplaces === null |
-            typeof opaPublicData(state, item).fireplaces === 'undefined' ? null :
-            opaPublicData(state, item).fireplaces + ' fireplaces ';
-
-          switch (opaPublicData(state, item).garage_type) {
-          case null : garages = null;
-            break;
-          case '0' : garages = null;
-            break;
-          case 'A': garages = 'Built-in/Basement garage';
-            break;
-          case 'B': garages = 'Attached garage';
-            break;
-          case 'C': garages = 'Detached garage';
-            break;
-          case 'F': garages = 'Converted garage';
-            break;
-          case 'S': garages = 'Self-park garage';
-            break;
-          case 'T': garages = 'Attendant parking';
-            break;
-          }
-
-          switch (opaPublicData(state, item).view_type) {
-          case '0': view = null;
-            break;
-          case 'A': view = 'View of cityscape/skyline';
-            break;
-          case 'B': view = 'View of river/creek';
-            break;
-          case 'C': view = 'View of park/green area';
-            break;
-          case 'D': view = 'View of commercial area';
-            break;
-          case 'E': view = 'View of industrial area';
-            break;
-          case 'H': view = 'View of historic edifice or landmark';
-            break;
-          case 'I': view = null;
-            break;
-          case null : view = null;
-            break;
-          }
-
-          garages = opaPublicData(state, item).garage_spaces === 1 ?
-            garages + ' (' + opaPublicData(state, item).garage_spaces + ' space)' :
-            opaPublicData(state, item).garage_spaces === 0 |
-            opaPublicData(state, item).garage_spaces === null |
-            typeof opaPublicData(state, item).garage_spaces === 'undefined'? null :
-              garages + ' (' + opaPublicData(state, item).garage_spaces + ' spaces)';
-
-          let toPush = [basements, fireplaces, garages, view];
-          toPush.map(a => a != null ? features.push(a):'');
-          return features.length === 0 ? 'None' : features.length === 1 ? features : features.join(', ');
+      {
+          label: 'Features',
+          value: function(item) {
+            let basements, fireplaces, garages, buildings, view;
+            let features = [];
+  
+            switch (opaPublicData(state, item).basements) {
+            case null: basements= null;
+              break;
+            case '0': basements= null;
+              break;
+            case 'A': basements = 'Full Finished basement';
+              break;
+            case 'B': basements = 'Full Semi-finished basement';
+              break;
+            case 'C': basements = 'Full Unfinished basement';
+              break;
+            case 'D': basements = 'Full basement';
+              break;
+            case 'E': basements = 'Finished partial basement';
+              break;
+            case 'F': basements = 'Semi-finished partial basement';
+              break;
+            case 'G': basements = 'Unfinished partial basement';
+              break;
+            case 'H': basements = 'Partial basement';
+              break;
+            case 'I': basements = 'Finished basement';
+              break;
+            case 'J': basements = 'Unfinished basement';
+              break;
+            }
+  
+            fireplaces = opaPublicData(state, item).fireplaces === 1 ?
+              opaPublicData(state, item).fireplaces + ' fireplace' :
+              opaPublicData(state, item).fireplaces === 0 |
+              opaPublicData(state, item).fireplaces === null |
+              typeof opaPublicData(state, item).fireplaces === 'undefined' ? null :
+              opaPublicData(state, item).fireplaces + ' fireplaces ';
+  
+            switch (opaPublicData(state, item).garage_type) {
+            case null : garages = null;
+              break;
+            case '0' : garages = null;
+              break;
+            case 'A': garages = 'Built-in/Basement garage';
+              break;
+            case 'B': garages = 'Attached garage';
+              break;
+            case 'C': garages = 'Detached garage';
+              break;
+            case 'F': garages = 'Converted garage';
+              break;
+            case 'S': garages = 'Self-park garage';
+              break;
+            case 'T': garages = 'Attendant parking';
+              break;
+            }
+  
+            switch (opaPublicData(state, item).view_type) {
+            case '0': view = null;
+              break;
+            case 'A': view = 'View of cityscape/skyline';
+              break;
+            case 'B': view = 'View of river/creek';
+              break;
+            case 'C': view = 'View of park/green area';
+              break;
+            case 'D': view = 'View of commercial area';
+              break;
+            case 'E': view = 'View of industrial area';
+              break;
+            case 'H': view = 'View of historic edifice or landmark';
+              break;
+            case 'I': view = null;
+              break;
+            case null : view = null;
+              break;
+            }
+  
+            garages = opaPublicData(state, item).garage_spaces === 1 ?
+              garages + ' (' + opaPublicData(state, item).garage_spaces + ' space)' :
+              opaPublicData(state, item).garage_spaces === 0 |
+              opaPublicData(state, item).garage_spaces === null |
+              typeof opaPublicData(state, item).garage_spaces === 'undefined'? null :
+                garages + ' (' + opaPublicData(state, item).garage_spaces + ' spaces)';
+  
+            let toPush = [basements, fireplaces, garages, view];
+            toPush.map(a => a != null ? features.push(a):'');
+            return features.length === 0 ? 'None' : features.length === 1 ? features : features.join(', ');
+        },
       },
-    },
-    {
-      label: 'Heating and Utilities',
-      value: function(state, item){
-
-
-          let heat = [];
-
-          switch (opaPublicData(state, item).fuel) {
-          case 'A' : heat.push('Natural gas heating');
-            break;
-          case 'B' : heat.push('Oil fuel heating');
-            break;
-          case 'C' : heat.push('Electric heating');
-            break;
-          case 'D' : heat.push('Coal heating');
-            break;
-          case 'E' : heat.push('Solar heating');
-            break;
-          case 'F' : heat.push('Woodstove heating');
-            break;
-          case 'G' : null;
-            break;
-          case 'H' : null;
-            break;
-          case null : null;
-            break;
+      {
+        label: 'Heating and Utilities',
+        value: function(item){
+  
+  
+            let heat = [];
+  
+            switch (opaPublicData(state, item).fuel) {
+            case 'A' : heat.push('Natural gas heating');
+              break;
+            case 'B' : heat.push('Oil fuel heating');
+              break;
+            case 'C' : heat.push('Electric heating');
+              break;
+            case 'D' : heat.push('Coal heating');
+              break;
+            case 'E' : heat.push('Solar heating');
+              break;
+            case 'F' : heat.push('Woodstove heating');
+              break;
+            case 'G' : null;
+              break;
+            case 'H' : null;
+              break;
+            case null : null;
+              break;
+            }
+  
+            switch (opaPublicData(state, item).type_heater) {
+            case 'A' : heat.push('Duct (heated air) heaters');
+              break;
+            case 'B' : heat.push('Radiator/baseboard (heated water) heaters');
+              break;
+            case 'C' : heat.push('Baseboard (electric) heaters');
+              break;
+            case 'D' : null;
+              break;
+            case 'E' : null;
+              break;
+            case 'F' : heat.push('Woodstove heating');
+              break;
+            case 'G' : heat.push('Radiant heaters');
+              break;
+            case 'H' : null;
+              break;
+            case null : null;
+              break;
+            }
+  
+            opaPublicData(state, item).central_air === 'Y' ? heat.push('Has central air') : null;
+            opaPublicData(state, item).sewer === 'Y' ? heat.push( 'City sewer') : null;
+  
+            let heatOutput = [];
+            heat.map(a => a != null ? heatOutput.push(a):'');
+            return heatOutput.length === 0 ? '' : heatOutput.length === 1 ? heatOutput : heatOutput.join(', ');
+  
+            return heat.join('<br>');
+  
+        },
+      },
+      {
+        label: 'Frontage',
+        value: function(item) {
+          let frontage =  opaPublicData(state, item).frontage === null ? 'Not Available ' :
+            typeof opaPublicData(state, item).frontage === 'undefined' ? 'Not Available ' :
+            opaPublicData(state, item).frontage.toFixed(0) + ' ft';
+          return frontage
+        },
+      },
+      {
+        label: 'Beginning Point',
+        value: function(item) {
+          let point = opaPublicData(state, item).beginning_point;
+          return point === null ? "":
+            typeof point === 'undefined' ? "":
+              point.replace(/"/g, '""').trim()
+        },
+      },
+      {
+        label: 'Zoning Code',
+        value: function(item){
+          let id = [];
+          if(typeof item.parcel_number != 'undefined') {
+            id = item.parcel_number
+          } else {
+            id =  item.properties.opa_account_num
           }
-
-          switch (opaPublicData(state, item).type_heater) {
-          case 'A' : heat.push('Duct (heated air) heaters');
-            break;
-          case 'B' : heat.push('Radiator/baseboard (heated water) heaters');
-            break;
-          case 'C' : heat.push('Baseboard (electric) heaters');
-            break;
-          case 'D' : null;
-            break;
-          case 'E' : null;
-            break;
-          case 'F' : heat.push('Woodstove heating');
-            break;
-          case 'G' : heat.push('Radiant heaters');
-            break;
-          case 'H' : null;
-            break;
-          case null : null;
-            break;
-          }
-
-          opaPublicData(state, item).central_air === 'Y' ? heat.push('Has central air') : null;
-          opaPublicData(state, item).sewer === 'Y' ? heat.push( 'City sewer') : null;
-
-          let heatOutput = [];
-          heat.map(a => a != null ? heatOutput.push(a):'');
-          return heatOutput.length === 0 ? '' : heatOutput.length === 1 ? heatOutput : heatOutput.join(', ');
-
-          return heat.join('<br>');
-
+          // state.geocode.status === "success"?  id =  item.properties.opa_account_num :
+          //   state.ownerSearch.status === "success" ? id =  item.properties.opa_account_num :
+          //     id = item.parcel_number;
+          if (typeof state.sources.opa_public.targets[id] != 'undefined' && id != "" && state.sources.opa_public.targets[id].data.zoning != null) {
+            return state.sources.opa_public.targets[id].data.zoning.trim();
+          } return "";
+        },
       },
-    },
-    {
-      label: 'Frontage',
-      value: function(state, item) {
-        let frontage =  opaPublicData(state, item).frontage === null ? 'Not Available ' :
-          typeof opaPublicData(state, item).frontage === 'undefined' ? 'Not Available ' :
-          opaPublicData(state, item).frontage.toFixed(0) + ' ft';
-        return frontage
-      },
-    },
-    {
-      label: 'Beginning Point',
-      value: function(state, item) {
-        let point = opaPublicData(state, item).beginning_point;
-        return point === null ? "":
-          typeof point === 'undefined' ? "":
-            point.replace(/"/g, '""').trim()
-      },
-    },
-    {
-      label: 'Zoning Code',
-      value: function(state, item){
-        let id = [];
+      {
+        label: 'Zoning Description',
+        value: function (state, item) {
+          let id = [];
         if(typeof item.parcel_number != 'undefined') {
-          id = item.parcel_number
-        } else {
-          id =  item.properties.opa_account_num
-        }
-        // state.geocode.status === "success"?  id =  item.properties.opa_account_num :
-        //   state.ownerSearch.status === "success" ? id =  item.properties.opa_account_num :
-        //     id = item.parcel_number;
-        if (typeof state.sources.opa_public.targets[id] != 'undefined' && id != "" && state.sources.opa_public.targets[id].data.zoning != null) {
-          return state.sources.opa_public.targets[id].data.zoning.trim();
-        } return "";
+            id = item.parcel_number
+          } else {
+            id =  item.properties.opa_account_num
+          }
+          // state.geocode.status === "success"?  id =  item.properties.opa_account_num :
+          //   state.ownerSearch.status === "success" ? id =  item.properties.opa_account_num :
+          //     id = item.parcel_number;
+          if (typeof state.sources.opa_public.targets[id] != 'undefined' && id != "" && state.sources.opa_public.targets[id].data.zoning != null) {
+            const code = state.sources.opa_public.targets[id].data.zoning ;
+            return helpers.ZONING_CODE_MAP[code.trim()];
+          }  return "";
+        },
       },
-    },
-    {
-      label: 'Zoning Description',
-      value: function (state, item) {
-        let id = [];
-      if(typeof item.parcel_number != 'undefined') {
-          id = item.parcel_number
-        } else {
-          id =  item.properties.opa_account_num
-        }
-        // state.geocode.status === "success"?  id =  item.properties.opa_account_num :
-        //   state.ownerSearch.status === "success" ? id =  item.properties.opa_account_num :
-        //     id = item.parcel_number;
-        if (typeof state.sources.opa_public.targets[id] != 'undefined' && id != "" && state.sources.opa_public.targets[id].data.zoning != null) {
-          const code = state.sources.opa_public.targets[id].data.zoning ;
-          return helpers.ZONING_CODE_MAP[code.trim()];
-        }  return "";
+      {
+        label: 'Ward',
+        value: function(item) {
+          return opaPublicData(state, item).political_ward;
+        },
       },
-    },
-    {
-      label: 'Ward',
-      value: function(state, item) {
-        return opaPublicData(state, item).political_ward;
+      {
+        label: 'Ward Division',
+        value: function(item) {
+          return opaPublicData(state, item).political_district;
+        },
       },
-    },
-    {
-      label: 'Ward Division',
-      value: function(state, item) {
-        return opaPublicData(state, item).political_district;
+      {
+        label: 'Council District',
+        value: function(item) {
+          return opaPublicData(state, item).council_district_2024;
+        },
       },
-    },
-    {
-      label: 'Council District',
-      value: function(state, item) {
-        return opaPublicData(state, item).council_district_2024;
+      {
+        label: 'Elementary School',
+        value: function(item) {
+          return opaPublicData(state, item).elementary_school;
+        },
       },
-    },
-    {
-      label: 'Elementary School',
-      value: function(state, item) {
-        return opaPublicData(state, item).elementary_school;
+      {
+        label: 'Middle School',
+        value: function(item) {
+          return opaPublicData(state, item).middle_school;
+        },
       },
-    },
-    {
-      label: 'Middle School',
-      value: function(state, item) {
-        return opaPublicData(state, item).middle_school;
+      {
+        label: 'High School',
+        value: function(item) {
+          return opaPublicData(state, item).high_school;
+        },
       },
-    },
-    {
-      label: 'High School',
-      value: function(state, item) {
-        return opaPublicData(state, item).high_school;
+      {
+        label: 'Police District',
+        value: function(item) {
+          return opaPublicData(state, item).police_district;
+        },
       },
-    },
-    {
-      label: 'Police District',
-      value: function(state, item) {
-        return opaPublicData(state, item).police_district;
-      },
-    },
-  ];
-};
+    ];
+  };
+}; 
 
-const mailingFields = (item) => {
-  const valueOptions = DatafetchStore.lastSearchMethod === "shape search" ? shapeOptions.value :
-    DatafetchStore.lastSearchMethod === "owner search" ? ownerOptions.value :
+const getMailingFields = (item) => {
+  const valueOptions = MainStore.lastSearchMethod === "shape search" ? shapeOptions.value :
+    MainStore.lastSearchMethod === "owner search" ? ownerOptions.value :
       geocodeOptions.value;
   return  {
     fields: [
@@ -1213,11 +1224,11 @@ const mailingFields = (item) => {
         label: 'Owner',
         value: function(item) {
           let owner;
-          DatafetchStore.lastSearchMethod === "shape search" || DatafetchStore.lastSearchMethod === "buffer search" ?
+          MainStore.lastSearchMethod === "shape search" || MainStore.lastSearchMethod === "buffer search" ?
             owner = item.owner_2 != null ?
               titleCase(item.owner_1.trim()) + "\n" + titleCase(item.owner_2.trim()):
               titleCase(item.owner_1.trim()) :
-            DatafetchStore.lastSearchMethod === "owner search" ?
+            MainStore.lastSearchMethod === "owner search" ?
               owner = item.properties.opa_owners.map( a => titleCase(a)).join('\n') :
               owner = titleCase(item.properties.opa_owners.join(' \n '));
           return owner;
@@ -1225,13 +1236,13 @@ const mailingFields = (item) => {
       },
       {
         label: 'Street Address',
-        value: function(state, item) {
+        value: function(item) {
           return valueOptions.fields.filter(item => item.label === 'Street Address')[0].value(state, item);
         },
       },
       {
         label: 'Zip Code',
-        value: function(state, item) {
+        value: function(item) {
           let zip = item.properties ? item.properties.zip_code : item.zip_code.substring(0,5);
           return 'Philadelphia, PA' + zip;
         },
@@ -1240,11 +1251,91 @@ const mailingFields = (item) => {
   };
 };
 
+
+const table1 = {
+  columns: [
+    {
+      label: 'Name',
+      field: 'name',
+    },
+    {
+      label: 'Age',
+      field: 'age',
+      type: 'number',
+    },
+    {
+      label: 'Created On',
+      field: 'createdAt',
+      type: 'date',
+      dateInputFormat: 'yyyy-MM-dd',
+      dateOutputFormat: 'MMM do yy',
+    },
+    {
+      label: 'Percent',
+      field: 'score',
+      type: 'percentage',
+    },
+  ],
+  rows: [
+    { id:1, name:"John", age: 20, createdAt: null, score: 0.03343 },
+    { id:2, name:"Jane", age: 24, createdAt: '2011-10-31', score: 0.03343 },
+    { id:3, name:"Susan", age: 16, createdAt: '2011-10-30', score: 0.03343 },
+    { id:4, name:"Chris", age: 55, createdAt: '2011-10-11', score: 0.03343 },
+    { id:5, name:"Dan", age: 40, createdAt: '2011-10-21', score: 0.03343 },
+    { id:6, name:"John", age: 20, createdAt: '2011-10-31', score: 0.03343 },
+  ],
+}
+
+
+const allColumns = [
+  {
+    label: 'Street Address',
+    field: 'address',
+  },
+  {
+    label: 'Market Value',
+    field: 'market_value',
+  },
+  {
+    label: 'Date of Last Sale',
+    field: 'sale_date',
+  },
+  {
+    label: 'Price of Last Sale',
+    field: 'sale_price',
+  },
+  {
+    label: 'Owner',
+    field: 'owner_1',
+  },
+]
+
+const allRows = [
+  {
+    address: '1234 Market St',
+    market_value: '$100,000',
+    sale_date: '01/01/2020',
+    sale_price: '$200,000',
+    owner_1: 'John Doe',
+  },
+  {
+    address: '5678 Market St',
+    market_value: '$200,000',
+    sale_date: '02/01/2020',
+    sale_price: '$300,000',
+    owner_1: 'Jane Smith',
+  },
+]
+
+const newRowClick = (props) => {
+  console.log('newRowClick, props:', props);
+};
+
 </script>
 
 <template>
   <div id="data-panel-container">
-    <full-screen-topics-toggle-tab-vertical
+    <full-screen-data-toggle-tab
       id="lower-toggle-tab"
     />
     <div

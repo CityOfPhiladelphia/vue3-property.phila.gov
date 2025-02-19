@@ -42,21 +42,24 @@ a {
   padding: 0px !important;
 }
 
-.main-row-full {
+.main-row {
   display: flex;
   flex-direction: row;
   padding: 0px !important;
-  height: 50%;
 }
 
-.main-row-half {
-  display: flex;
-  flex-direction: row;
-  padding: 0px !important;
-  height: 50%;
+// .main-row-half {
+//   display: flex;
+//   flex-direction: row;
+//   padding: 0px !important;
+//   // height: 50%;
+// }
+
+.left-panel-holder-hidden {
+  display: none;
 }
 
-.topics-holder {
+.left-panel-holder {
   display: flex;
   flex-direction: column;
   width: 50% !important;
@@ -65,11 +68,11 @@ a {
   // height: calc(100vh - 110px);
 }
 
-.topics-holder-full {
+.left-panel-holder-full {
   width: 100% !important;
 }
 
-#topic-panel-no-topics {
+#left-panel-no-topics {
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -83,7 +86,7 @@ a {
   padding-left: 1.5em;
 }
 
-#topic-panel-content {
+#left-panel-content {
   flex-grow: 1;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -98,7 +101,7 @@ a {
   margin-bottom: 0px;
 }
 
-.map-panel-holder-full {
+.map-panel-holder-full-width {
   width: 100% !important;
 }
 
@@ -130,7 +133,11 @@ a {
   display: none;
 }
 
-.map-panel {
+.map-panel-data-panel {
+  height: calc(50vh - 46px);
+}
+
+.map-panel-left-panel {
   height: calc(100vh - 110px);
 }
 
@@ -146,11 +153,13 @@ a {
   height: 50%;
 }
 
+
+
 .map-class {
   height: 100%;
 }
 
-.map-class-data-open {
+.map-class-half {
   height: 50%;
 }
 
@@ -302,7 +311,7 @@ only screen and (max-width: 768px),
     overflow-y: scroll;
   }
 
-  .topics-holder {
+  .left-panel-holder {
     display: flex;
     flex-direction: column;
     width: 100% !important;
@@ -311,14 +320,14 @@ only screen and (max-width: 768px),
     height: auto;
   }
 
-  #topic-panel-content {
+  #left-panel-content {
     overflow-y: hidden;
     overflow-x: hidden;
     padding-left: 12px;
     padding-right: 12px;
   }
 
-  #topic-panel-no-topics {
+  #left-panel-no-topics {
     overflow-x: hidden;
     overflow-y: hidden;
     padding-left: 20px;
@@ -422,12 +431,12 @@ only screen and (max-width: 768px),
 //     height: 500px;
 //   }
 
-//   #topic-panel-no-topics {
+//   #left-panel-no-topics {
 //     min-height: calc(100vh - 570px) !important;
 //     // height: 60dvh !important;
 //   }
 
-//   #topic-panel-content {
+//   #left-panel-content {
 //     min-height: calc(100vh - 700px) !important;
 //     // height: 60dvh !important;
 //   }

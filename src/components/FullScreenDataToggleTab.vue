@@ -29,8 +29,8 @@ watch(
 //   return MainStore.fullScreenMapEnabled;
 // });
 
-const fullScreenTopicsEnabled = computed(() => {
-  return MainStore.fullScreenTopicsEnabled;
+const fullScreenDataEnabled = computed(() => {
+  return MainStore.fullScreenDataEnabled;
 });
 
 const isMobileOrTablet = computed(() =>{
@@ -63,7 +63,7 @@ watch (
 )
 
 const currentIcon = computed(() => {
-  if (fullScreenTopicsEnabled.value) {
+  if (fullScreenDataEnabled.value) {
     return 'caret-left';
   }
   return 'caret-right';
@@ -80,18 +80,18 @@ const setYPosition = (dim) => {
 
 const setXPosition = async (dim) => {
   // if (import.meta.env.VITE_DEBUG == 'true') console.log('setXPosition dim:', dim, typeof dim);
-  if (fullScreenTopicsEnabled.value) {
+  if (fullScreenDataEnabled.value) {
     buttonX.value = '0px';
   } else {
     buttonX.value = dim/2 + 'px';
   }
 }
 
-const handleFullScreenTopicsToggleButtonClick = () => {
-  const prevFullScreenTopicsEnabled = MainStore.fullScreenTopicsEnabled;
-  const nextFullScreenTopicsEnabled = !prevFullScreenTopicsEnabled;
-  MainStore.fullScreenTopicsEnabled = nextFullScreenTopicsEnabled;
-  if (nextFullScreenTopicsEnabled) {
+const handleFullScreenDataToggleButtonClick = () => {
+  const prevfullScreenDataEnabled = MainStore.fullScreenDataEnabled;
+  const nextfullScreenDataEnabled = !prevfullScreenDataEnabled;
+  MainStore.fullScreenDataEnabled = nextfullScreenDataEnabled;
+  if (nextfullScreenDataEnabled) {
     buttonX.value = '0px';
   } else {
     buttonX.value = MainStore.windowDimensions.width/2 + 'px';
@@ -104,12 +104,12 @@ const handleFullScreenTopicsToggleButtonClick = () => {
 <template>
   <button
     v-if="!isMobileOrTablet"
-    id="topics-toggle-tab"
-    :title="fullScreenTopicsEnabled ? 'Show Map Panel' : 'Hide Map Panel'"
+    id="data-toggle-tab"
+    :title="fullScreenDataEnabled ? 'Show Map Panel' : 'Hide Map Panel'"
     :style="{ top: buttonY, right: buttonX }"
     class="toggle-tab"
     tabindex="0"
-    @click="handleFullScreenTopicsToggleButtonClick"
+    @click="handleFullScreenDataToggleButtonClick"
   >
     <!-- <span class="align-span"> -->
     <font-awesome-icon

@@ -802,7 +802,6 @@ watch(
   }
 });
 
-
 // methods
 // End - Update for Property Tax Calculator
 const buttonLinkLI = () =>{
@@ -815,23 +814,22 @@ const buttonLinkTaxBalance = () => {
   return false;
 };
 
-const closeModal = async() => {
-  console.log('PropertyCard.vue closeModal is running');
+const openDataPanel = async() => {
+  console.log('PropertyCard.vue openDataPanel is running');
   MainStore.activeModal.featureId = null;
   MainStore.setActiveFeature(null);
 
-  if (DatafetchStore.lastSearchMethod === 'block search') {
+  // await nextTick();
+  // MapStore.map.resize();
+  // if (DatafetchStore.lastSearchMethod === 'block search') {
     // this.$controller.setRouteByBlockSearch(DatafetchStore.blockSearch.input);
-  } else if (DatafetchStore.lastSearchMethod === 'shape search') {
+  // } else if (DatafetchStore.lastSearchMethod === 'shape search') {
     // this.$controller.setRouteByShapeSearch();
-  } else if (DatafetchStore.lastSearchMethod === 'buffer search') {
+  // } else if (DatafetchStore.lastSearchMethod === 'buffer search') {
     // this.$controller.setRouteByBufferSearch();
-  } else {
+  // } else {
     // this.$controller.setRouteByGeocode();
-  }
-
-  await nextTick();
-  MapStore.map.resize();
+  // }
 };
 
 const print = () => {
@@ -868,8 +866,8 @@ const print = () => {
       <div
         class="openmaps-modal-close hide-print"
         :tabindex="1"
-        @click="closeModal"
-        v-on:keydown.enter="closeModal"
+        @click="openDataPanel"
+        v-on:keydown.enter="openDataPanel"
       >
         <span class="button-state state-unnamed-state unnamed-state-active pointer">
           <a>Back to results</a>

@@ -7,7 +7,7 @@ const MapStore = useMapStore();
 import { useDatafetchStore } from '@/stores/DatafetchStore.js';
 const DatafetchStore = useDatafetchStore();
 
-import FullScreenTopicsToggleTab from '@/components/FullScreenTopicsToggleTab.vue';
+import FullScreenDataToggleTab from '@/components/FullScreenDataToggleTab.vue';
 
 import { computed, onUnmounted } from 'vue';
 
@@ -54,11 +54,11 @@ const sitePath = computed(() => {
 // })
 
 const leftPanelClass = computed(() => {
-  if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
-    return 'left-panel-class';
-  } else {
-    return 'left-panel-class-data-open';
-  }
+  // if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
+  return 'left-panel-class';
+  // } else {
+  //   return 'left-panel-class-data-open';
+  // }
   // if (isMobileOrTablet.value) {
   //   return 'left-panel mobile';
   // } else {
@@ -70,7 +70,6 @@ const leftPanelClass = computed(() => {
 </script>
 
 <template>
-  <!-- <full-screen-topics-toggle-tab /> -->
   <div
     id="intro-container"
     :class="leftPanelClass"
@@ -104,8 +103,6 @@ const leftPanelClass = computed(() => {
       </div>
       <h2>To get started, you can: </h2>
       <div class="spacer" />
-      <!-- <p>Here are some things you can do with Property:</p> -->
-      <!-- <div class="callout"> -->
       <div>
         <ul class="padded-list fa-ul">
           <li> <span class="fa-li"><i class="far fa-hand-rock"></i></span>
@@ -158,7 +155,6 @@ const leftPanelClass = computed(() => {
 }
 
 .loading-mask {
-  /*display: inline;*/
   position: absolute;
   top: 0;
   height: 450%;
@@ -170,17 +166,8 @@ const leftPanelClass = computed(() => {
   padding-top: 250px;
 }
 
-// .introduction {
-//   overflow-y: auto;
-//   top: 0;
-//   bottom: 0;
-//   position: absolute;
-//   // height: calc(100% - 122px);
-// }
-
 .intro-red {
   color: black;
-  // font-weight: bold;
   background: #fed0d0;
   padding: 10px;
 }
@@ -198,16 +185,6 @@ const leftPanelClass = computed(() => {
 .spacer {
   height: 15px;
 }
-
-// .padded-list {
-//   padding-left: 14px;
-//   li {
-//     padding: 16px 20px 0 14px;
-//   }
-//   li:nth-child(4){
-//     list-style-image: url("../../public/images/Hexagon.png");
-//     }
-// }
 
 @media print {
   #intro-container {
@@ -244,10 +221,6 @@ const leftPanelClass = computed(() => {
   .introduction {
     padding: 28px 28px 0 28px;
   }
-
-  // .padded-list {
-  //   padding-left: 4px;
-  // }
 }
 
 .full-topics-open {

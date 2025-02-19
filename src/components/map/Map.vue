@@ -657,9 +657,9 @@ const turnOnEagleview = () => {
 
 const mapClass = computed(() => {
   if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
-    return 'map-class';
+    return 'map-class-half';
   } else {
-    return 'map-class-data-open';
+    return 'map-class';
   }
 });
 

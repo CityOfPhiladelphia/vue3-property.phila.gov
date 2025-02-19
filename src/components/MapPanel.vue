@@ -259,8 +259,8 @@ const isMobileOrTablet = computed(() => {
   return MainStore.isMobileOrTablet;
 });
 
-const fullScreenTopicsEnabled = computed(() => {
-  return MainStore.fullScreenTopicsEnabled;
+const fullScreenDataEnabled = computed(() => {
+  return MainStore.fullScreenDataEnabled;
 });
 
 const mapDivClass = computed(() => {
@@ -689,8 +689,8 @@ watch(
 });
 
 watch(
-  () => fullScreenTopicsEnabled,
-  (nextFullScreenTopicsEnabled) => {
+  () => fullScreenDataEnabled,
+  (nextfullScreenDataEnabled) => {
   MapStore.map.resize();
 });
 
@@ -1227,11 +1227,16 @@ const handleMarkerMouseout = (e) => {
 };
 
 const mapPanelClass = computed(() => {
-  if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
-    return 'map-panel cyclomedia-eagleview';
+  let value = '';
+  if (MainStore.leftPanel) {
+    value += 'map-panel-left-panel';
   } else {
-    return 'map-panel';
+    value += 'map-panel-data-panel';
   }
+  if (MapStore.cyclomediaOn || MapStore.eagleviewOn) {
+    value +='-cyclomedia-eagleview';
+  }
+  return value;
 });
 
 </script>

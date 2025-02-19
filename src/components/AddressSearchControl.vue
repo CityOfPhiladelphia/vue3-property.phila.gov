@@ -20,8 +20,8 @@ const clearAddress = () => {
   MainStore.addressSearchValue = '';
 }
 
-const fullScreenTopicsEnabled = computed(() => {
-  return MainStore.fullScreenTopicsEnabled;
+const fullScreenDataEnabled = computed(() => {
+  return MainStore.fullScreenDataEnabled;
 });
   
 const fullScreenMapEnabled = computed(() => {
@@ -29,7 +29,7 @@ const fullScreenMapEnabled = computed(() => {
 });
     
 const holderWidth = computed(() => {
-  if (fullScreenTopicsEnabled.value || fullScreenMapEnabled.value) {
+  if (fullScreenDataEnabled.value || fullScreenMapEnabled.value) {
     return '40%';
   } else {
     return '70%';
@@ -37,7 +37,7 @@ const holderWidth = computed(() => {
 });
 
 const yPosition = computed(() => {
-  if (fullScreenTopicsEnabled.value) {
+  if (fullScreenDataEnabled.value) {
     return '88px';
   } else {
     return '10px';
@@ -53,7 +53,7 @@ const replaceRoute = (address) => {
 
 <template>
   <div
-    :class="fullScreenTopicsEnabled ? 'holder holder-topics' : 'holder holder-map'"
+    :class="fullScreenDataEnabled ? 'holder holder-topics' : 'holder holder-map'"
     :style="{ top: yPosition, width: holderWidth }"
   >
     <div class="field has-addons" :style="{ width: '100%' }">
