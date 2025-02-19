@@ -844,7 +844,7 @@ const print = () => {
     v-if="MainStore.activeModal.featureId"
     :class="containerClass"
   >
-    <header class="modal">
+    <!-- <header class="modal">
       <div class="row expanded">
         <div class="columns">
           <div class="print-logo">
@@ -860,9 +860,11 @@ const print = () => {
           </div>
         </div>
       </div>
-    </header>
+    </header> -->
+
+    <!-- v-if="foundItemsLength > 1" -->
+    
     <div class="fixed-header">
-      <!-- v-if="foundItemsLength > 1" -->
       <div
         class="openmaps-modal-close hide-print"
         :tabindex="1"
@@ -914,9 +916,8 @@ const print = () => {
         </div>
       </div>
     </div>
+    
     <div class="openmaps-modal-content">
-
-
       <!-- owner and address horizontal table -->
       <horizontal-table
         class="owner-table"
@@ -1727,7 +1728,8 @@ header {
 }
 
 .openmaps-modal {
-  height: 100% ;
+  height: 200%;
+  overflow-y: hidden;
   /* width: 100%; */
   /* position: absolute; */
   background: white;

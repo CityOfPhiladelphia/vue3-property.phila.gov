@@ -135,6 +135,11 @@ const leftPanelClass = computed(() => {
 
 <style lang="scss">
 
+.left-panel-holder {
+  height: calc(100vh - 110px);
+  overflow-y: visible;
+}
+
 .inline-block {
   display: inline-block;
 }
@@ -152,6 +157,7 @@ const leftPanelClass = computed(() => {
 
 #intro-container {
   height: 100%;
+  overflow-y: visible;
 }
 
 .loading-mask {
