@@ -45,8 +45,8 @@ const yPosition = computed(() => {
 });
 
 const replaceRoute = (address) => {
-  let startQuery = { ...route.query };
-  router.replace({ name: 'search', query: { ...startQuery, address: address }});
+  // let startQuery = { ...route.query };
+  router.replace({ name: 'search', query: { address: address }});
 }
 
 </script>

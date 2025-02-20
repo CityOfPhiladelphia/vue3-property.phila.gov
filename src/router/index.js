@@ -26,6 +26,7 @@ const clearStoreData = async() => {
 }
 
 const getGeocodeAndPutInStore = async(address) => {
+  if (import.meta.env.VITE_DEBUG == 'true') console.log('getGeocodeAndPutInStore is running, address:', address);
   const GeocodeStore = useGeocodeStore();
   const MainStore = useMainStore();
   await GeocodeStore.fillAisData(address);
@@ -110,7 +111,7 @@ const dataFetch = async(to, from) => {
   }
 
   let opaNum;
-  if (to.query.p) { opaNum = to.query.p }
+  if (to.query.p != "") { opaNum = to.query.p }
 
   if (import.meta.env.VITE_DEBUG == 'true') console.log('to.params.address:', to.params.address, 'from.params.address:', from.params.address, 'GeocodeStore.aisData.normalized:', GeocodeStore.aisData.normalized);
   
@@ -125,10 +126,12 @@ const dataFetch = async(to, from) => {
 
   if (import.meta.env.VITE_DEBUG == 'true') console.log('routeOpaChanged:', routeOpaChanged);
 
+  // if (!to.query.p) {
+
   // In the config, there is a list called "addressDoubles" of addresses we know of that are used by multiple properties.
   // An exception has to be made for them, in the case that someone clicks from one of them to the other.
   // if ($config.addressDoubles.includes(address) || routeOpaChanged) {
-  if (routeOpaChanged) {
+  if (to.query.p != "" && routeOpaChanged) {
     // if there is no geocode or the geocode does not match the address in the route, get the geocode
     if (import.meta.env.VITE_DEBUG) console.log('GeocodeStore.aisData.normalized:', GeocodeStore.aisData.normalized);
     // WILL NEED TO PUT THIS BACK IN
@@ -155,7 +158,7 @@ const dataFetch = async(to, from) => {
   // check for condos
   const CondosStore = useCondosStore();
   CondosStore.loadingCondosData = true;
-  await CondosStore.fillCondoData(opaNum);
+  await CondosStore.fillCondoData(MainStore.currentAddress);
   CondosStore.loadingCondosData = false;
 
   const OpaStore = useOpaStore();

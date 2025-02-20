@@ -28,7 +28,8 @@ export const useCondosStore = defineStore('CondosStore', {
         let params = {
           include_units: true,
           opa_only: true,
-          page: page,
+          sort_field: 'street_address',
+          // page: page,
         };
         const response = await axios(`https://api.phila.gov/ais/v1/search/${encodeURIComponent(address)}`, { params });
         // if (import.meta.env.VITE_DEBUG == 'true') console.log('condos response:', response);

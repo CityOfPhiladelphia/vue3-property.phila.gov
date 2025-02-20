@@ -192,7 +192,8 @@ const geocodeOptions = computed(() => {
               },
             },
             options: {
-              class: function (state, item) {
+              class: function (item) {
+                console.log('item:', item);
                 // console.log('calculating button-comp class, item.properties.opa_account_num:', item.properties.opa_account_num, typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num]);
                 // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? "" : 'condo-button';
                 if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
@@ -201,7 +202,7 @@ const geocodeOptions = computed(() => {
                   return 'condo-button';
                 }
               },
-              style: function (state, item) {
+              style: function (item) {
                 // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? { display: 'none' } : "";
                 if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
                   return { display: 'none' };

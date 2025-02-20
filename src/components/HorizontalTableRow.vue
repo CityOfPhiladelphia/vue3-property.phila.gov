@@ -2,6 +2,8 @@
 
 import { ref, computed, watch, onMounted } from 'vue';
 
+import TopicComponentGroup from './TopicComponentGroup.vue';
+
 import { useMainStore } from '@/stores/MainStore.js';
 const MainStore = useMainStore();
 
@@ -54,19 +56,19 @@ const throttle = (func, timeFrame) => {
 };
 
 // directives: {
-//   colspan: {
-//     inserted: function (el, binding) {
-//       // console.log('colspan directive running, el', el, 'binding:', binding, 'binding.value:', binding.value, 'binding.expression:', binding.expression);
-//       if (binding.value.isCondo && binding.value.columnLabel === binding.value.options.column) {
-//         // console.log('colspan inserted if, binding:', binding);
-//         el.setAttribute('colspan', binding.value.options.span);
-//         el.setAttribute('style', 'padding: unset');
-//       } else if (binding.value.isCondo && binding.value.columnValue === 'Not Applicable') {
-//         // console.log('colspan inserted else, binding:', binding);
-//         el.remove();
-//       }
-//     },
-//   },
+const vColspan = {
+  mounted: function (el, binding) {
+    console.log('colspan directive running, el', el, 'binding:', binding, 'binding.value:', binding.value, 'binding.expression:', binding.expression);
+    if (binding.value.isCondo && binding.value.columnLabel === binding.value.options.column) {
+      // console.log('colspan inserted if, binding:', binding);
+      el.setAttribute('colspan', binding.value.options.span);
+      el.setAttribute('style', 'padding: unset');
+    } else if (binding.value.isCondo && binding.value.columnValue === 'Not Applicable') {
+      // console.log('colspan inserted else, binding:', binding);
+      el.remove();
+    }
+  }
+}
 // },
 
 const showFieldLabel = ref(false);
@@ -84,7 +86,7 @@ const isCondo = computed(() => {
   if (props.item.condo) {
     value = true;
   } else {
-    value = false;
+    value = true;
   }
   return value;
 });
@@ -389,7 +391,7 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
     <td
       v-for="(field, index) in fields"
       :key="index"
-      v-colspan="{columnLabel:field.label, columnValue: evaluateSlot(field.value), isCondo, options:$props.options.colSpan}"
+      v-colspan="{ columnLabel: field.label, columnValue: evaluateSlot(field.value), isCondo, options: props.options.colSpan }"
       :sorttable_customkey="[field.customKey ? evaluateSlot(field.customKey) : evaluateSlot(field.value)]"
       :class="[
         typeof field.customClass !== 'undefined'? field.customClass : '',
@@ -397,10 +399,10 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
         !fullScreenTopicsOrTable? 'half-screen-table-cell': ''
       ]"
     >
-      <!-- <topic-component-group
+      <topic-component-group
         :topic-components="field.components"
         :item="item"
-      /> -->
+      />
       <b v-show="shouldBeBold">
         <popover-link
           v-if="field.popoverLink"
@@ -409,13 +411,13 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
           :field-label="field.label"
         />
         <div
-          v-if="!i18nEnabled && !field.popoverLink"
+          v-if="!field.popoverLink"
           v-html="evaluateFieldLabel(field.label) + addColon() + evaluateSlot(field.value, field.transforms, field.nullValue)"
         />
-        <div
+        <!-- <div
           v-if="i18nEnabled && !field.popoverLink"
           v-html="$t(evaluateFieldLabel(field.label)) + addColon() + evaluateSlot(field.value, field.transforms, field.nullValue)"
-        />
+        /> -->
       </b>
 
       <!-- Total Row -->
@@ -428,15 +430,15 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
         />
         <div>
           <div
-            v-if="!i18nEnabled && !field.popoverLink"
+            v-if="!field.popoverLink"
             :style="field.customStyle"
             v-html="evaluateFieldLabel(field.label) + addColon() + evaluateSlot(field.value, field.transforms, field.nullValue)"
           />
-          <div
+          <!-- <div
             v-if="i18nEnabled && !field.popoverLink"
             :style="field.customStyle"
             v-html="$t(evaluateFieldLabel(field.label)) + addColon() + evaluateSlot(field.value, field.transforms, field.nullValue)"
-          />
+          /> -->
 
           <font-awesome-icon
             v-if="mobileIcon(field.mobileIcon)"
