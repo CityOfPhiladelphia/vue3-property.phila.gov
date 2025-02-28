@@ -34,7 +34,8 @@ const router = useRouter();
 
 // COMPONENTS
 import AddressSearchControl from '@/components/AddressSearchControl.vue';
-import DistanceMeasureControl from '@/components/map/DistanceMeasureControl.vue';
+import DrawControl from '@/components/map/DrawControl.vue';
+// import DistanceMeasureControl from '@/components/map/DistanceMeasureControl.vue';
 import ImageryToggleControl from '@/components/map/ImageryToggleControl.vue';
 import ImageryDropdownControl from '@/components/map/ImageryDropdownControl.vue';
 import CyclomediaControl from '@/components/map/CyclomediaControl.vue';
@@ -158,7 +159,8 @@ onMounted(async () => {
       router.replace({ name: 'search', query: { ...startQuery, lng: e.lngLat.lng, lat: e.lngLat.lat }})
     }
     if (draw.getMode() === 'draw_polygon') {
-      distanceMeasureControlRef.value.getDrawDistances(e);
+      // distanceMeasureControlRef.value.getDrawDistances(e);
+      drawControlRef.value.getDrawDistances(e);
     }
   });
 
@@ -171,6 +173,9 @@ onMounted(async () => {
   });
 
   MapStore.draw = draw;
+  // draw.changeMode('draw_polygon');
+  // draw.trash();
+  // MapStore.draw.changeMode('draw_polygon');
   map.addControl(draw, 'bottom-right');
 
   map.on('draw.create', drawCreate);
@@ -407,19 +412,23 @@ watch(
 )
 
 // the distance measure control is added in the template with a ref, so that functions within the component can be called from this file
-const distanceMeasureControlRef = ref(null)
+const drawControlRef = ref(null)
+// const distanceMeasureControlRef = ref(null)
 
 const drawCreate = (e) => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('drawCreate is running, e', e);
-  distanceMeasureControlRef.value.getDrawDistances(e);
+  drawControlRef.value.getDrawDistances(e);
+  // distanceMeasureControlRef.value.getDrawDistances(e);
 }
 const drawUpdate = (e) => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('drawUpdate is running, e:', e);
-  distanceMeasureControlRef.value.getDrawDistances(e);
+  drawControlRef.value.getDrawDistances(e);
+  // distanceMeasureControlRef.value.getDrawDistances(e);
 }
 const drawSelectionChange = (e) => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('drawSelectionChange is running, e:', e);
-  distanceMeasureControlRef.value.handleDrawSelectionChange(e);
+  drawControlRef.value.handleDrawSelectionChange(e);
+  // distanceMeasureControlRef.value.handleDrawSelectionChange(e);
 }
 const drawModeChange = (e) => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('drawModeChange is running, e', e);
@@ -428,6 +437,7 @@ const drawModeChange = (e) => {
   } else {
     map.getCanvas().style.cursor = ''
   }
+  drawControlRef.value.handleDrawModeChange(e);
   distanceMeasureControlRef.value.handleDrawModeChange(e);
 }
 const drawDelete = (e) => {
@@ -690,11 +700,16 @@ const mapClass = computed(() => {
     <EagleviewControl />
     <CyclomediaControl />
     <!-- the distance measure control uses a ref, so that functions within the component can be called from this file -->
-    <DistanceMeasureControl
-      ref="distanceMeasureControlRef"
+    <DrawControl
+      ref="drawControlRef"
       @drawDelete="drawDelete"
       @drawCancel="drawCancel"
     />
+    <!-- <DistanceMeasureControl
+      ref="distanceMeasureControlRef"
+      @drawDelete="drawDelete"
+      @drawCancel="drawCancel"
+    /> -->
   </div>
   <KeepAlive>
     <CyclomediaPanel
