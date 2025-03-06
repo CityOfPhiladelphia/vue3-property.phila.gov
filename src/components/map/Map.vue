@@ -208,7 +208,7 @@ watch(
 // watch address pwd coordinates for moving address marker
 // const pwdCoordinates = computed(() => {
 //   if (GeocodeStore.aisData.features) {
-//     return GeocodeStore.aisData.features[0].geometry.coordinates;
+//     return GeocodeStore.aisData.geometry.coordinates;
 //   } else {
 //     return [];
 //   }

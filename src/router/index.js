@@ -23,6 +23,7 @@ const clearStoreData = async() => {
   const CondosStore = useCondosStore();
   CondosStore.lastPageUsed = 1;
   CondosStore.condosData.pages = { page_1: { features: [] } };
+  CondosStore.condoUnits = { units: {} };
 }
 
 const getGeocodeAndPutInStore = async(address) => {
@@ -30,19 +31,22 @@ const getGeocodeAndPutInStore = async(address) => {
   const GeocodeStore = useGeocodeStore();
   const MainStore = useMainStore();
   await GeocodeStore.fillAisData(address);
+  console.log('test')
   if (MainStore.lastSearchMethod == 'address' && !GeocodeStore.aisData.features) {
     MainStore.currentAddress = null;
     if (import.meta.env.VITE_DEBUG == 'true') console.log('getGeocodeAndPutInStore, calling not-found');
     return;
-  } else if (!GeocodeStore.aisData.features) {
+  } else if (!Object.keys(GeocodeStore.aisData).length) {
     return;
   }
+  console.log('test2')
   let currentAddress;
-  if (GeocodeStore.aisData.features[0].properties.street_address) {
-    currentAddress = GeocodeStore.aisData.features[0].properties.street_address;
-  } else if (GeocodeStore.aisData.features[0].street_address) {
-    currentAddress = GeocodeStore.aisData.features[0].street_address;
+  if (GeocodeStore.aisData.properties.street_address) {
+    currentAddress = GeocodeStore.aisData.properties.street_address;
+  } else if (GeocodeStore.aisData.street_address) {
+    currentAddress = GeocodeStore.aisData.street_address;
   }
+  console.log('currentAddress:', currentAddress);
   MainStore.setCurrentAddress(currentAddress);
 }
 
@@ -115,35 +119,26 @@ const dataFetch = async(to, from) => {
 
   if (import.meta.env.VITE_DEBUG == 'true') console.log('to.params.address:', to.params.address, 'from.params.address:', from.params.address, 'GeocodeStore.aisData.normalized:', GeocodeStore.aisData.normalized);
   
-  // let routeAddressChanged;
-  // if (from.params.address) {
-  //   routeAddressChanged = to.params.address.trim() !== from.params.address.trim();
-  // } else {
-  //   routeAddressChanged = to.params.address !== from.params.address;
-  // }
+  let routeAddressChanged;
+  if (from.params.address) {
+    routeAddressChanged = to.params.address.trim() !== from.params.address.trim();
+  } else {
+    routeAddressChanged = to.params.address !== from.params.address;
+  }
 
   let routeOpaChanged = to.query.p !== from.query.p;
-
   if (import.meta.env.VITE_DEBUG == 'true') console.log('routeOpaChanged:', routeOpaChanged);
-
-  // if (!to.query.p) {
 
   // In the config, there is a list called "addressDoubles" of addresses we know of that are used by multiple properties.
   // An exception has to be made for them, in the case that someone clicks from one of them to the other.
   // if ($config.addressDoubles.includes(address) || routeOpaChanged) {
-  if (to.query.p != "" && routeOpaChanged) {
+  if (routeOpaChanged && to.query.p) {
     // if there is no geocode or the geocode does not match the address in the route, get the geocode
     if (import.meta.env.VITE_DEBUG) console.log('GeocodeStore.aisData.normalized:', GeocodeStore.aisData.normalized);
-    // WILL NEED TO PUT THIS BACK IN
     if (!GeocodeStore.aisData.normalized || GeocodeStore.aisData.normalized && GeocodeStore.aisData.normalized !== opaNum) {
       if (import.meta.env.VITE_DEBUG == 'true') console.log('in datafetch, routeOpaChanged:', routeOpaChanged, 'right before geocode, GeocodeStore.aisData:', GeocodeStore.aisData);
       await clearStoreData();
-      // if (GeocodeStore.aisDataChecked.features) {
-      //   GeocodeStore.aisData = GeocodeStore.aisDataChecked;
-      //   GeocodeStore.aisDataChecked = {};
-      // } else {
       await getGeocodeAndPutInStore(opaNum);
-      // }
     }
     if (import.meta.env.VITE_DEBUG == 'true') console.log('in datafetch, after geocode, GeocodeStore.aisData:', GeocodeStore.aisData);
 
@@ -151,15 +146,29 @@ const dataFetch = async(to, from) => {
     if (MainStore.lastSearchMethod !== 'mapClick') {
       if (import.meta.env.VITE_DEBUG == 'true') console.log('dataFetch, inside if');
       await ParcelsStore.fillPwdParcelData();
-      // await ParcelsStore.fillDorParcelData();
+    }
+  } else if (routeAddressChanged && to.query.address) {
+    // if there is no geocode or the geocode does not match the address in the route, get the geocode
+    if (import.meta.env.VITE_DEBUG) console.log('GeocodeStore.aisData.normalized:', GeocodeStore.aisData.normalized);
+    if (!GeocodeStore.aisData.normalized || GeocodeStore.aisData.normalized && GeocodeStore.aisData.normalized !== opaNum) {
+      if (import.meta.env.VITE_DEBUG == 'true') console.log('in datafetch, routeOpaChanged:', routeOpaChanged, 'right before geocode, GeocodeStore.aisData:', GeocodeStore.aisData);
+      await clearStoreData();
+      await getGeocodeAndPutInStore(to.query.address);
+    }
+    if (import.meta.env.VITE_DEBUG == 'true') console.log('in datafetch, after geocode, GeocodeStore.aisData:', GeocodeStore.aisData);
+
+    // if this was NOT started by a map click, get the parcels
+    if (MainStore.lastSearchMethod !== 'mapClick') {
+      if (import.meta.env.VITE_DEBUG == 'true') console.log('dataFetch, inside if');
+      await ParcelsStore.fillPwdParcelData();
     }
   }
   
   // check for condos
-  const CondosStore = useCondosStore();
-  CondosStore.loadingCondosData = true;
-  await CondosStore.fillCondoData(MainStore.currentAddress);
-  CondosStore.loadingCondosData = false;
+  // const CondosStore = useCondosStore();
+  // CondosStore.loadingCondosData = true;
+  // await CondosStore.fillCondoData(MainStore.currentAddress);
+  // CondosStore.loadingCondosData = false;
 
   const OpaStore = useOpaStore();
   await OpaStore.fillOpaPublic();

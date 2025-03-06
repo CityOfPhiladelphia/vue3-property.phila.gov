@@ -12,6 +12,10 @@ import { useOpaStore } from '@/stores/OpaStore.js';
 const OpaStore = useOpaStore();
 import { useGeocodeStore } from '@/stores/GeocodeStore.js';
 const GeocodeStore = useGeocodeStore();
+import { useCondosStore } from '@/stores/CondosStore.js';
+const CondosStore = useCondosStore();
+import { useParcelsStore } from '@/stores/ParcelsStore.js';
+const ParcelsStore = useParcelsStore();
 
 import { format, parseISO } from 'date-fns';
 import helpers from '../util/helpers';
@@ -81,16 +85,16 @@ const geocodeStatus = computed(() => {
 
 const geocodeItems = computed(() => {
   let data = [];
-  // if (!condoExpanded.value && geocode.value.features[0] && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties && MainStore.lastSearchMethod === 'geocode') {
-  if (!condoExpanded.value && geocode.value.features[0] && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
-  // if (geocode.value.features[0] && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
-    const parentCondo = geocode.value.features[0];
+  // if (!condoExpanded.value && geocode.value && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties && MainStore.lastSearchMethod === 'geocode') {
+  if (!condoExpanded.value && geocode.value && CondosStore.condoUnits.units && ParcelsStore.pwd && ParcelsStore.pwd[0] && ParcelsStore.pwd[0].properties) {
+  // if (geocode.value && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
+    const parentCondo = geocode.value;
     console.log('in geocodeItems, in if, parentCondo:', parentCondo);
     for (let i in parentCondo.properties) {
       parentCondo.properties[i] = "";
     }
-    if (DatafetchStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID]) {
-      parentCondo.properties.opa_owners = [ "Condominium (" + DatafetchStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID].length + " Units)" ];
+    if (CondosStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID]) {
+      parentCondo.properties.opa_owners = [ "Condominium (" + CondosStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID].length + " Units)" ];
     }
     parentCondo.properties.street_address = MainStore.parcels.pwd[0].properties.ADDRESS;
     parentCondo.properties.opa_address = MainStore.parcels.pwd[0].properties.ADDRESS;
@@ -99,12 +103,12 @@ const geocodeItems = computed(() => {
     // parentCondo.condo = true;
     data.push(parentCondo);
   } else {
-    console.log('in geocodeItems, in else, geocode.value.features[0]:', geocode.value.features[0], 'geocode.value.related:', geocode.value.related);
-    if (geocode.value.features[0]) {
-      data.push(geocode.value.features[0]);
+    console.log('in geocodeItems, in else, geocode.value:', geocode.value, 'geocode.value.related:', geocode.value.related);
+    if (geocode.value) {
+      data.push(geocode.value);
     }
-    if (geocode.value.related) {
-      for (let related of geocode.value.related) {
+    if (GeocodeStore.related) {
+      for (let related of GeocodeStore.related) {
         data.push(related);
       }
     }
@@ -153,7 +157,7 @@ const geocodeOptions = computed(() => {
         label: 'Street Address',
         shouldBeBold: true,
         value: function(item) {
-          console.log('in Street Address, item:', item);
+          // console.log('in Street Address, item:', item);
           let address;
           if(MainStore.lastSearchMethod === "buffer search") {
             address = titleCase(item.address_std);
@@ -184,7 +188,7 @@ const geocodeOptions = computed(() => {
           {
             type: 'button-comp',
             slots: {
-              text: 'Click to add units to results.',
+              text: 'Click to add units to results',
               buttonAction: addCondoRecords,
               buttonFinished() {
                 // console.log("button finished running")
@@ -338,7 +342,7 @@ const ownerOptions = computed(() => {
           {
             type: 'button-comp',
             slots: {
-              text: 'Click to add units to results.',
+              text: 'Click to add units to results',
               buttonAction: addCondoRecords,
               buttonFinished() {
                 // console.log("button finished running")
@@ -521,7 +525,7 @@ const shapeOptions = computed(() => {
           {
             type: 'button-comp',
             slots: {
-              text: 'Click to add units to results.',
+              text: 'Click to add units to results',
               buttonAction: addCondoRecords,
             },
             options: {
@@ -635,24 +639,29 @@ const opaPublicData = (item) => {
     MainStore.sources.opa_public.targets[activeOpaId(item)].data;
 };
 
-const addCondoRecords = () => {
-  console.log('addCondoRecords is running');
+const mapUnitIds = (id) => {
+  // console.log('running mapUnitIds, id:', id, DatafetchStore.condoUnits.units[id]);
+  // let unitsToAdd = CondosStore.condosData.pages.page_1.features;
+  // let unitsToAdd = CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].features;
+  let unitsToAdd = CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]];
+  console.log('in mapUnitIds, unitsToAdd:', unitsToAdd);
+  unitsToAdd.map(
+    (item, index) => {
+      typeof item.properties != 'undefined' ? item._featureId = item.properties.pwd_parcel_id + "-UNIT-" + index :
+        item._featureId = item.pwd_parcel_id + "-UNIT-" + index;
+    },
+  );
+  // console.log("Units to add: ", unitsToAdd)
+  return unitsToAdd;
+};
+
+const addCondoRecords = (item) => {
+  console.log('addCondoRecords is running, item:', item, 'this:', this);
 
   showTable.value = false;
   condoExpanded.value = true;
-  let mapUnitIds = function(id) {
-    // console.log('running mapUnitIds, id:', id, DatafetchStore.condoUnits.units[id]);
-    let unitsToAdd = DatafetchStore.condoUnits.units[id];
-    unitsToAdd.map(
-      (item, index) => {
-        typeof item.properties != 'undefined' ? item._featureId = item.properties.pwd_parcel_id + "-UNIT-" + index :
-          item._featureId = item.pwd_parcel_id + "-UNIT-" + index;
-      },
-    );
-    // console.log("Units to add: ", unitsToAdd)
-    return unitsToAdd;
-  };
-  mapUnitIds = mapUnitIds.bind(this);
+  
+  // const mapUnitIds = mapUnitIds.bind(this);
   // console.log('after mapUnitIds', item);
   let unitData;
   if (MainStore.lastSearchMethod === 'block search') {
@@ -685,11 +694,13 @@ const addCondoRecords = () => {
     condoExpanded.value = true;
     const input = MainStore.parcels.pwd ?
             MainStore.parcels.pwd[0].properties.ADDRESS :
-            GeocodeStore.aisData.features[0].properties.opa_address;
+            GeocodeStore.aisData.properties.opa_address;
     // $controller.dataManager.clients.condoSearch.fetch(input);
+    // console.log('addCondoRecords, item:', item);
     unitData = mapUnitIds(item._featureId);
-    // console.log('in addCondoRecords, lastSearchMethod = geocode');
-    DatafetchStore.setGeocodeRelated(unitData);
+    console.log('in addCondoRecords, lastSearchMethod = geocode, unitData:', unitData);
+    // GeocodeStore.setGeocodeRelated(unitData);
+    GeocodeStore.related = unitData;
     // $controller.dataManager.fetchData();
   } else if (MainStore.lastSearchMethod === 'reverseGeocode' ) {
   // if (MainStore.lastSearchMethod === 'reverseGeocode' || MainStore.lastSearchMethod === 'geocode') {
@@ -701,7 +712,7 @@ const addCondoRecords = () => {
     // $controller.dataManager.clients.condoSearch.fetch(input);
 
     unitData = mapUnitIds(item._featureId);
-    DatafetchStore.setGeocodeRelated(unitData);
+    GeocodeStore.related = unitData;
 
     // $controller.dataManager.fetchData();
   } else {
@@ -760,8 +771,8 @@ const tableSort = (fields) => {
   return fields;
 };
 
-const rowClick = (state, item) => {
-  console.log('rowClick is running, state:', state, 'item:', item);
+const rowClick = (item) => {
+  console.log('rowClick is running, item:', item);
   let parcel_number;
   if (item.parcel_number) {
     parcel_number = item.parcel_number;

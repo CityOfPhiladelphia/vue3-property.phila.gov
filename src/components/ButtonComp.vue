@@ -47,7 +47,9 @@ const style = computed(() => {
 });
 
 // methods
-const clickAction = () =>{
+const clickAction = (e) =>{
+  e.stopPropagation();
+  if (import.meta.env.VITE_DEBUG) console.log('ButtonComp.vue, clickAction, props.slots.buttonAction:', props.slots.buttonAction);
   evaluateSlot(props.slots.buttonAction);
   props.options.stopClickedChange ? "" : clicked.value = true;
 };
@@ -139,6 +141,22 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
 
   .clicked-true {
     display: none;
+  }
+
+  .condo-button {
+    background-color: rgba(85, 85, 85, 0.33);
+    height: 38px !important;
+    width: 100%;
+    box-shadow: 0 0 0 0em !important;
+  }
+
+  .condo-button:hover {
+    background-color: #444 !important;
+    color: white !important;
+  }
+
+  .condo-button:focus:not(:active) {
+    box-shadow: 0 0 0 0em !important;
   }
 
 </style>

@@ -2,6 +2,7 @@
 <script>
 
 import { useParcelsStore } from '@/stores/ParcelsStore';
+import { useOpaStore } from '@/stores/OpaStore';
 
 export default {
   props: {
@@ -12,6 +13,24 @@ export default {
     'descriptor': {
       type: String,
       default: 'parcel',
+    },
+    'slots': {
+      type: Object,
+      default: function() {
+        return {};
+      },
+    },
+    'options': {
+      type: Object,
+      default: function() {
+        return {};
+      },
+    },
+    'item': {
+      type: Object,
+      default: function() {
+        return {};
+      },
     },
   },
   data() {
@@ -63,11 +82,11 @@ export default {
     },
     contextSingular() {
       // if (import.meta.env.VITE_DEBUG == 'true') console.log('contextSingular is running');
-      const context = this.$data.context;
+      const context = this.options.context;
       return context.singular || context;
     },
     contextPlural() {
-      const context = this.$data.context;
+      const context = this.options.context;
       // if (import.meta.env.VITE_DEBUG == 'true') console.log('contextPlural, context.plural:', context.plural);
       return context.plural || context;
     },
@@ -100,19 +119,22 @@ export default {
       return `no ${this.descriptorPlural}`;
     },
     valueQuantities() {
-      const ParcelsStore = useParcelsStore();
-      const items = ParcelsStore.dor.features;
-      // const items = this.slots.items(this.$store.state);
-      // if (import.meta.env.VITE_DEBUG == 'true') console.log('valueQuantities, items:', items);
+      // const OpaStore = useOpaStore();
+      // const items = OpaStore.opa_public.targets;
+      // const ParcelsStore = useParcelsStore();
+      // const items = ParcelsStore.dor.features;
+      const items = this.slots.items();
+      if (import.meta.env.VITE_DEBUG == 'true') console.log('valueQuantities, items:', items);
       if (!items) {
         return;
       }
-      // const getValue = this.$data.getValue;
+      const getValue = this.options.getValue;
 
       // make an object of value => quantity
       const valueQuantities = items.reduce((obj, item) => {
-        // if (import.meta.env.VITE_DEBUG == 'true') console.log('in reduce, obj:', obj, 'item:', item);
-        const val = item.properties[this.$props.value];
+        // const val = item[this.$props.value];
+        const val = getValue(item);
+        if (import.meta.env.VITE_DEBUG == 'true') console.log('in reduce, obj:', obj, 'item:', item, 'val:', val);
         obj[val] = obj[val] || 0;
         obj[val]++;
         return obj;
@@ -139,7 +161,7 @@ export default {
     // quantities (e.g. {apple: 2} => "2 apples")
     naturalizeQuantities(valueQuantities = {}) {
       // get some data
-      const types = this.$data.types;
+      const types = this.options.types;
       const includeZeroes = this.$data.includeZeroes;
 
       // convert to natural language and sort per order of types option
@@ -159,7 +181,7 @@ export default {
         let labelWithNumber;
 
         // singular
-        if (quantity !== 1  && this.$data.context.pluralizeList != false) {
+        if (quantity !== 1  && this.options.context.pluralizeList != false) {
           const labelPlural = type.plural || labelSingular + 's';
           labelWithNumber = labelPlural;
           // plural
@@ -181,7 +203,7 @@ export default {
 </script>
 
 <template>
-  <div class="summary mb-2">
+  <div id="collection-summary" class="summary mb-2">
     {{ summary }}
   </div>
 </template>

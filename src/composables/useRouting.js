@@ -13,12 +13,15 @@ export default function useRouting() {
     delete startQuery['lat'];
     delete startQuery['lng'];
     if (import.meta.env.VITE_DEBUG) console.log('routeApp, router:', router, 'route:', route, 'startQuery:', startQuery);
-    if (MainStore.currentAddress) {
+    if (MainStore.condoSearched) {
+      console.log('searching condo');
+      router.push({ name: 'home', query: { ...startQuery, address: MainStore.currentAddress } });
+    } else if (MainStore.currentAddress) {
       if (import.meta.env.VITE_DEBUG) console.log('routeApp routing to address because MainStore has address');
       // router.push({ name: 'address', params: { address: MainStore.currentAddress }, query: { ...startQuery } });
       let p;
-      if (GeocodeStore.aisData && GeocodeStore.aisData.features && GeocodeStore.aisData.features.length > 0) {
-        p = GeocodeStore.aisData.features[0].properties.opa_account_num;
+      if (Object.keys(GeocodeStore.aisData).length) {
+        p = GeocodeStore.aisData.properties.opa_account_num;
       } else {
         p = ParcelsStore.pwd.features[0].properties.BRT_ID;
       }

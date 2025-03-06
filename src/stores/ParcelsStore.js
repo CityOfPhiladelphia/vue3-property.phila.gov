@@ -15,10 +15,11 @@ export const useParcelsStore = defineStore('ParcelsStore', {
   },
   actions: {
     async fillPwdParcelData() {
+      console.log('fillPwdParcelData');
       const GeocodeStore = useGeocodeStore();
-      const AddressLoaded = GeocodeStore.aisData.features
+      const AddressLoaded = GeocodeStore.aisData;
       if (!AddressLoaded) { return }
-      const aisData = AddressLoaded[0];
+      const aisData = AddressLoaded;
       const pwdParcelNumber = aisData.properties.pwd_parcel_id;
       if (!pwdParcelNumber) {
         if (import.meta.env.VITE_DEBUG == 'true') console.log('no pwd parcel in AIS')

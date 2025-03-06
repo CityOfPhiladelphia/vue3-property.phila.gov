@@ -46,7 +46,7 @@ export const useOpaStore = defineStore('OpaStore', {
         const GeocodeStore = useGeocodeStore();
         const CondosStore = useCondosStore();
         let opa = [];
-        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const opaNum = GeocodeStore.aisData.properties.opa_account_num;
         if (opaNum) {
           opa.push(opaNum);
         }
@@ -61,9 +61,12 @@ export const useOpaStore = defineStore('OpaStore', {
         // opa.push(state.geocode.related[0]);
         // let idNumber = Number(ParcelsStore.pwd[0].properties.PARCELID);
         if (!opa.length) {
-          opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
+          // opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
+          console.log('CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]]:', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]]);
+          console.log('CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num:', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
+          opa.push(CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
         }
-        // if (import.meta.env.VITE_DEBUG) console.log('fillOpaPublic 2 opa:', opa);
+        if (import.meta.env.VITE_DEBUG) console.log('fillOpaPublic 2 opa:', opa);
 
         const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+in+(${opa.map(item => `'${item}'`).join(',')})`);
         if (response.ok) {
@@ -84,7 +87,7 @@ export const useOpaStore = defineStore('OpaStore', {
         const GeocodeStore = useGeocodeStore();
         const CondosStore = useCondosStore();
         let opa = [];
-        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const opaNum = GeocodeStore.aisData.properties.opa_account_num;
         if (opaNum) {
           opa.push(opaNum);
         }
@@ -99,7 +102,8 @@ export const useOpaStore = defineStore('OpaStore', {
         // opa.push(state.geocode.related[0]);
         // let idNumber = Number(ParcelsStore.pwd[0].properties.PARCELID);
         if (!opa.length) {
-          opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
+          // opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
+          opa.push(CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
         }
         const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+parcel_number, market_value, sale_date, sale_price+from+opa_properties_public_pde+where+parcel_number+in+(${opa.map(item => `'${item}'`).join(',')})`);
         if (response.ok) {
@@ -118,7 +122,7 @@ export const useOpaStore = defineStore('OpaStore', {
     async fillActiveSearchAssessmentHistory() {
       try {
         const GeocodeStore = useGeocodeStore();
-        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const opaNum = GeocodeStore.aisData.properties.opa_account_num;
         const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+assessments+where+parcel_number+IN('${opaNum}')`);
         if (response.ok) {
           let data = await response.json();
@@ -137,7 +141,7 @@ export const useOpaStore = defineStore('OpaStore', {
     async fillActiveSearchSalesHistory() {
       try {
         const GeocodeStore = useGeocodeStore();
-        const opaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+        const opaNum = GeocodeStore.aisData.properties.opa_account_num;
         if (import.meta.env.VITE_DEBUG) console.log('fillActiveSearchSalesHistory OpaNum:', opaNum);
         let query = `select+*+from+RTT_SUMMARY+where+opa_account_num+%3D+%27${opaNum}%27+AND+document_type+%3D+%27DEED%27`;
         if (import.meta.env.VITE_DEBUG) console.log('fillActiveSearchSalesHistory opaNum:', opaNum, 'query:', query);
@@ -159,7 +163,7 @@ export const useOpaStore = defineStore('OpaStore', {
     // async fillAssessmentHistory() {
     //   try {
     //     const GeocodeStore = useGeocodeStore();
-    //     const OpaNum = GeocodeStore.aisData.features[0].properties.opa_account_num;
+    //     const OpaNum = GeocodeStore.aisData.properties.opa_account_num;
     //     const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+assessments+where+parcel_number+%3D+%27${OpaNum}%27`);
     //     if (response.ok) {
     //       this.assessmentHistory = await response.json();

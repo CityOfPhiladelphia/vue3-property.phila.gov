@@ -91,18 +91,6 @@ const closePopover = () => {
         @get-more-records="getMoreRecords"
         @close-popover="closePopover"
       />
-      <!-- <component
-        :is="comp.type"
-        v-for="(comp, compIndex) in topicComponentsComp"
-        :key="getCompKey(key, compIndex)"
-        :slots="comp.slots"
-        :options="comp.options"
-        :item="item"
-        class="topic-component"
-        @handle-topic-header-click="handleTopicHeaderClick"
-        @get-more-records="getMoreRecords"
-        @close-popover="closePopover"
-      /> -->
     </div>
     <div v-if="isList">
       <li

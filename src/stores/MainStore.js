@@ -6,6 +6,7 @@ import isMobileDevice from '../util/is-mobile-device';
 export const useMainStore = defineStore("MainStore", {
   state: () => {
     return {
+      condoSearched: false,
       addressSearchRunning: false,
       datafetchRunning: false,
       publicPath: null,
@@ -158,7 +159,7 @@ export const useMainStore = defineStore("MainStore", {
       this.this.horizontalTables.filteredData[tableId] = data;
     },
     setHorizontalTableMouseover(payload) {
-      this.this.horizontalTables.mouseover = payload;
+      // this.this.horizontalTables.mouseover = payload;
     },
     setMapFilters(payload) {
       this.this.map.filters = payload;

@@ -93,13 +93,13 @@ const activeModalFeature = computed(() => {
   let feature = null;
   if ([ 'geocode', 'reverseGeocode', 'address' ].includes(lastSearchMethod.value)) {
     if (GeocodeStore.related != null && GeocodeStore.related.length && GeocodeStore.aisData._featureId != MainStore.activeModal.featureId ) {
-      // console.log('first if is running');
+      console.log('first if is running');
       feature = GeocodeStore.related.filter(object => {
         return object._featureId === MainStore.activeModal.featureId;
       })[0];
-    } else if (GeocodeStore.aisData.features) {
-      // console.log('second if is running');
-      feature = GeocodeStore.aisData.features[0];
+    } else if (Object.keys(GeocodeStore.aisData).length) {
+      console.log('second if is running');
+      feature = GeocodeStore.aisData;
     }
   } else if (state.lastSearchMethod === 'owner search' || state.lastSearchMethod === 'block search' ) {
     let searchValue = state.lastSearchMethod === 'owner search' ? "ownerSearch" : "blockSearch"
@@ -197,24 +197,22 @@ const summaryOptions = computed(() => {
       },
     ],
     slots: {
-      items: function(state) {
-        // return state.dorParcels.data;
-        // return state.parcels.dor.data;
-        if(state.shapeSearch.data != null) {
-          return state.shapeSearch.data.rows;
-        } else if (state.geocode.data != null && state.geocode.data != "") {
+      items: function() {
+        if(DatafetchStore.shapeSearch.data != null) {
+          return DatafetchStore.shapeSearch.data.rows;
+        } else if (GeocodeStore.aisData != null && GeocodeStore.aisData != "") {
           let geocodeArray = [];
-          geocodeArray.push(state.geocode.data.properties);
-          if(state.geocode.related != null ) {
-            state.geocode.related.map(a => geocodeArray.push(a));
+          geocodeArray.push(GeocodeStore.aisData.properties);
+          if(GeocodeStore.related != null ) {
+            GeocodeStore.related.map(a => geocodeArray.push(a));
             return geocodeArray;
           }
           return geocodeArray;
 
-        } else if (state.ownerSearch.data != null) {
-          return state.ownerSearch.data;
-        } else if (state.blockSearch.data != null) {
-          return state.blockSearch.data;
+        } else if (DatafetchStore.ownerSearch.data != null) {
+          return DatafetchStore.ownerSearch.data;
+        } else if (DatafetchStore.blockSearch.data != null) {
+          return DatafetchStore.blockSearch.data;
         }
       },
     },
@@ -282,7 +280,8 @@ const shapeSearchStatus = computed(() => {
 });
 
 const anySearchStatus = computed(() => {
-  let statusArray = [ geocodeStatus, ownerSearchStatus, shapeSearchStatus, condoStatus, blockSearchStatus ];
+  let statusArray = [ geocodeStatus.value, ownerSearchStatus.value, shapeSearchStatus.value, condoStatus.value, blockSearchStatus.value ];
+  console.log('statusArray:', statusArray);
   let status;
   if (statusArray.includes('waiting')) {
     if (condoStatus === 'waiting') {
@@ -593,7 +592,7 @@ const onDataChange = (type) => {
       MainStore.setActiveFeature({ featureId: 'feat-block-0' });
       MainStore.setActiveModal({ featureId: 'feat-block-0' });
     } else {
-      console.log('onDataChange else else is running, GeocodeStore.aisData.features[0].properties.opa_account_num):', GeocodeStore.aisData.features[0].properties.opa_account_num);
+      // console.log('onDataChange else else is running, GeocodeStore.aisData.properties.opa_account_num):', GeocodeStore.aisData.properties.opa_account_num);
       // MainStore.setActiveFeature', { featureId: 'feat-geocode-0' });
       MainStore.setActiveFeature(null);
       MainStore.setActiveModal({ featureId: 'feat-geocode-0' });
@@ -739,11 +738,13 @@ const leftPanelHolderClass = computed(() => {
           v-show="currentErrorType !== null"
           v-html="errorMessage"
         />
+
         <collection-summary
           v-if="anySearchStatus === 'success'"
+          :options="summaryOptions"
+          :slots="summaryOptions.slots"
         />
-        <!-- :options="summaryOptions"
-        :slots="summaryOptions.slots" -->
+
         <div
           v-if="anySearchStatus === 'success'"
           id="clear-results"
@@ -753,6 +754,10 @@ const leftPanelHolderClass = computed(() => {
             <u><b> Clear search</b></u>
           </a>
         </div>
+
+        <button class="button is-pulled-right"></button>
+        <button class="button is-pulled-right"></button>
+
       </div>
         
       <!-- <div :class="tableClass"> -->
@@ -832,15 +837,15 @@ const leftPanelHolderClass = computed(() => {
 //   height: 100%;
 // }
 
-// #clear-results {
-//   display: inline-block !important;
-//   margin-left: 10px;
-//   font-size: 14px;
-// }
+#clear-results {
+  display: inline-block !important;
+  margin-left: 10px;
+  font-size: 14px;
+}
 
-// #collection-summary {
-//   display: inline-block !important;
-// }
+#collection-summary {
+  display: inline-block !important;
+}
 
 // #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .stack>thead>tr>th {
 //   position: sticky;
@@ -925,17 +930,17 @@ const leftPanelHolderClass = computed(() => {
   flex: 0;
 }
 
-// .bottom-half #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
-//   clear:both;
-//   z-index: 999;
-//   top: calc(60% - 7px);
-//   // right: 70px;
-// }
-// .bottom-full #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
-//   clear:both;
-//   z-index: 999;
-//   top: 93px;
-// }
+.bottom-half #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
+  clear:both;
+  z-index: 999;
+  top: calc(60% - 7px);
+  // right: 70px;
+}
+.bottom-full #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .pvc-export-data-button {
+  clear:both;
+  z-index: 999;
+  top: 93px;
+}
 
 // @media print {
 

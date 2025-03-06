@@ -167,10 +167,11 @@ const customElementClass = computed(() => {
 
 // this is the end of an added zone
 const shouldShowFilters = computed(() => {
-  if (typeof props.options.shouldShowFilters === 'undefined') {
-    return true;
-  }
-  return props.options.shouldShowFilters;
+  // if (typeof props.options.shouldShowFilters === 'undefined') {
+  //   return true;
+  // }
+  // return props.options.shouldShowFilters;
+  return false;
 });
 
 const shouldShowHeaders = computed(() => {
@@ -1391,6 +1392,19 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
         </a> -->
 
         <button-comp-light
+          v-if="shouldShowExportMailing"
+          :class="'mailing ' + buttonPositionClass"
+          :slots="{buttonAction: exportTableToMailing}"
+        >
+          <font-awesome-icon
+            v-if="options.export.formatButtons.mailing.icon"
+            :icon="options.export.formatButtons.mailing.icon"
+            class="button-icon"
+          />
+          {{ options.export.formatButtons.mailing.text }}
+        </button-comp-light>
+
+        <button-comp-light
           v-if="shouldShowExportCSV"
           :class="'csv ' + buttonPositionClass"
           :slots="{buttonAction: exportTableToCSV}"
@@ -1403,7 +1417,7 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
           {{ options.export.formatButtons.csv.text }}
         </button-comp-light>
 
-        <button-comp-light
+        <!-- <button-comp-light
           v-if="shouldShowExportPDF"
           :class="'pdf ' + buttonPositionClass"
           :slots="{buttonAction: exportTableToPDF}"
@@ -1414,9 +1428,9 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
             class="button-icon"
           />
           {{ options.export.formatButtons.pdf.text }}
-        </button-comp-light>
+        </button-comp-light> -->
 
-        <button-comp-light
+        <!-- <button-comp-light
           v-if="shouldShowExportPDFLight"
           :class="'pdf ' + buttonPositionClass"
           :slots="{buttonAction: exportTableToPDF}"
@@ -1427,20 +1441,8 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
             class="button-icon"
           />
           {{ options.export.formatButtons['pdf-light'].text }}
-        </button-comp-light>
+        </button-comp-light> -->
 
-        <button-comp-light
-          v-if="shouldShowExportMailing"
-          :class="'mailing ' + buttonPositionClass"
-          :slots="{buttonAction: exportTableToMailing}"
-        >
-          <font-awesome-icon
-            v-if="options.export.formatButtons.mailing.icon"
-            :icon="options.export.formatButtons.mailing.icon"
-            class="button-icon"
-          />
-          {{ options.export.formatButtons.mailing.text }}
-        </button-comp-light>
         <!-- this is the end of an added zone -->
 
         <div v-if="slots.title">

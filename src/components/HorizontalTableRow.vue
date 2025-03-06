@@ -86,7 +86,7 @@ const isCondo = computed(() => {
   if (props.item.condo) {
     value = true;
   } else {
-    value = true;
+    value = false;
   }
   return value;
 });
@@ -293,7 +293,7 @@ const handleWindowResize = () => {
 };
 
 const evaluateFieldLabel = (label) => {
-  console.log('evaluateFieldLabel, label:', label);
+  // console.log('evaluateFieldLabel, label:', label);
   if (showFieldLabel.value && props.totalRowField !== label.toLowerCase()) {
     return label;
   }

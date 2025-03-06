@@ -177,7 +177,7 @@ onMounted( async() => {
     cyclomediaInitialized.value = true;
   }
   if (GeocodeStore.aisData.features) {
-    setNewLocation(GeocodeStore.aisData.features[0].geometry.coordinates);
+    setNewLocation(GeocodeStore.aisData.geometry.coordinates);
   } else {
     setNewLocation([ -75.163471, 39.953338 ]);
   }
