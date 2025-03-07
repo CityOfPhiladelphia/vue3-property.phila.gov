@@ -90,10 +90,10 @@ if (sortFields.length) {
 // };
 
 // computed
-// const i18nEnabled = computed(() => {
-//   let value = $config.i18n && $config.i18n.enabled;
-//   return value;
-// });
+const i18nEnabled = computed(() => {
+  // let value = $config.i18n && $config.i18n.enabled;
+  return false;
+});
 
 const buttonPositionClass = computed(() => {
   let value;
@@ -1391,7 +1391,7 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
           {{ options.export.formatButtons.pdf }}
         </a> -->
 
-        <button-comp-light
+        <!-- <button-comp-light
           v-if="shouldShowExportMailing"
           :class="'mailing ' + buttonPositionClass"
           :slots="{buttonAction: exportTableToMailing}"
@@ -1415,7 +1415,7 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
             class="button-icon"
           />
           {{ options.export.formatButtons.csv.text }}
-        </button-comp-light>
+        </button-comp-light> -->
 
         <!-- <button-comp-light
           v-if="shouldShowExportPDF"
@@ -1544,13 +1544,13 @@ const evaluateSlot = (valOrGetter, transforms = [], nullValue = '') => {
         </table>
 
         <!-- external link (aka "see more")-->
-        <external-link
+        <!-- <external-link
           v-if="options.externalLink && shouldShowExternalLink"
           :options="options.externalLink"
           :count="count"
           :limit="limit"
           :type="'horizontal-table'"
-        />
+        /> -->
         <!-- <div class="external-link"
              v-if="options.externalLink && shouldShowExternalLink"
         >

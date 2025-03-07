@@ -230,19 +230,6 @@ const pwdDrawnMapStyle = mergeDeep(imageryInfo,{
         'fill-opacity': 0.2,
       },
     },
-    // {
-    //   id: 'addressMarker',
-    //   source: 'addressMarker',
-    //   type: 'symbol',
-    //   layout: {
-    //     'icon-image': 'marker-blue',
-    //     'icon-rotate': 180,
-    //     'icon-anchor': 'bottom',
-    //     'icon-size': .05,
-    //     "icon-allow-overlap" : true,
-    //     "text-allow-overlap": true,
-    //   },
-    // },
     {
       id: 'pwdParcel',
       type: 'fill',
@@ -262,6 +249,19 @@ const pwdDrawnMapStyle = mergeDeep(imageryInfo,{
         'line-color': 'blue',
         'line-width': 2
       }
+    },
+    {
+      id: 'addressMarker',
+      source: 'addressMarker',
+      type: 'symbol',
+      layout: {
+        'icon-image': 'marker-blue',
+        'icon-rotate': 180,
+        'icon-anchor': 'bottom',
+        'icon-size': .05,
+        "icon-allow-overlap" : true,
+        "text-allow-overlap": true,
+      },
     },
   ],
 });

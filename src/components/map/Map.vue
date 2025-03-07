@@ -206,27 +206,27 @@ watch(
 )
 
 // watch address pwd coordinates for moving address marker
-// const pwdCoordinates = computed(() => {
-//   if (GeocodeStore.aisData.features) {
-//     return GeocodeStore.aisData.geometry.coordinates;
-//   } else {
-//     return [];
-//   }
-// });
+const pwdCoordinates = computed(() => {
+  if (GeocodeStore.aisData.geometry) {
+    return GeocodeStore.aisData.geometry.coordinates;
+  } else {
+    return [];
+  }
+});
 
-// watch(
-//   () => pwdCoordinates.value,
-//   newCoords => {
-//   if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords, 'MapStore.addressMarker:', MapStore.addressMarker);
-//   if (newCoords.length) {
-//     const address = point(newCoords);
-//     map.getSource('addressMarker').setData(address);
-//   }
-// });
+watch(
+  () => pwdCoordinates.value,
+  newCoords => {
+  if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords, 'MapStore.addressMarker:', MapStore.addressMarker);
+  if (newCoords.length) {
+    const address = point(newCoords);
+    map.getSource('addressMarker').setData(address);
+  }
+});
 
 // watch pwd parcel coordinates for moving pwd parcel
 // const selectedParcelId = computed(() => { return MainStore.selectedParcelId; });
-const pwdCoordinates = computed(() => {
+const pwdParcelCoordinates = computed(() => {
   let value;
   // if (import.meta.env.VITE_DEBUG == 'true') console.log('computed dorCoordinates, selectedParcelId.value:', selectedParcelId.value, 'ParcelsStore.dor', ParcelsStore.dor);
   if (ParcelsStore.pwd.features) {
@@ -245,7 +245,7 @@ const pwdCoordinates = computed(() => {
 });
 
 watch(
-  () => pwdCoordinates.value,
+  () => pwdParcelCoordinates.value,
   newCoords => {
   if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords);
   let newParcel;

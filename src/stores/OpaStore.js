@@ -42,6 +42,7 @@ export const useOpaStore = defineStore('OpaStore', {
       this.assessmentHistory = {};
     },
     async fillOpaPublic() {
+      console.log('fillOpaPublic is running');
       try {
         const GeocodeStore = useGeocodeStore();
         const CondosStore = useCondosStore();
@@ -83,6 +84,7 @@ export const useOpaStore = defineStore('OpaStore', {
       }
     },
     async fillOpaAssessment() {
+      console.log('fillOpaAssessment is running');
       try {
         const GeocodeStore = useGeocodeStore();
         const CondosStore = useCondosStore();
@@ -93,7 +95,7 @@ export const useOpaStore = defineStore('OpaStore', {
         }
         if (GeocodeStore.related != null){
           for (let relate of GeocodeStore.related) {
-            opa.push(relate);
+            opa.push(relate.properties.opa_account_num);
           }
         }
         // if (state.geocode.data.condo != null && state.geocode.data.condo == true) {
@@ -105,6 +107,7 @@ export const useOpaStore = defineStore('OpaStore', {
           // opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
           opa.push(CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
         }
+        console.log('fillOpaAssessment 2 opa:', opa);
         const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+parcel_number, market_value, sale_date, sale_price+from+opa_properties_public_pde+where+parcel_number+in+(${opa.map(item => `'${item}'`).join(',')})`);
         if (response.ok) {
           let data = await response.json();

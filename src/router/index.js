@@ -266,3 +266,4 @@ router.afterEach(async (to, from) => {
 });
 
 export default router;
+// export { dataFetch };

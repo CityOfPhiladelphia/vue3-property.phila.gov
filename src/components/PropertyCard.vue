@@ -902,7 +902,7 @@ const print = () => {
           </div>
         </div>
         <div>
-          <button-comp-light
+          <!-- <button-comp-light
             id="plans-button"
             class="print-button"
             :slots="{buttonAction: print}"
@@ -912,20 +912,20 @@ const print = () => {
               class="button-icon"
             />
             Print
-          </button-comp-light>
+          </button-comp-light> -->
         </div>
       </div>
     </div>
     
     <div class="openmaps-modal-content">
       <!-- owner and address horizontal table -->
-      <horizontal-table
+      <!-- <horizontal-table
         class="owner-table"
         :slots="{
           items: opaPublicData
         }"
         :options="ownerAddressTableOptions"
-      />
+      /> -->
 
       <!-- sale vertical table -->
       <!-- v-if="!MainStore.sources.opa_public.targets[activeOpaId].data" -->
@@ -942,10 +942,10 @@ const print = () => {
         <h3>Loading Sale Data</h3>
       </div>
 
-      <vertical-table-light
+      <!-- <vertical-table-light
         class="print-padding sale-info"
         :slots="saleVerticalTableSlots"
-      />
+      /> -->
 
       <!-- main callout -->
 
@@ -969,11 +969,11 @@ const print = () => {
           Balance details on this property.
         </div>
 
-        <button-comp-light
+        <!-- <button-comp-light
           :slots="{buttonAction: buttonLinkTaxBalance}"
         >
           View the tax balance
-        </button-comp-light>
+        </button-comp-light> -->
       </div>
 
       <!-- valuation history horizontal table -->
@@ -1004,12 +1004,12 @@ const print = () => {
         </div>
       </div>
 
-      <horizontal-table
+      <!-- <horizontal-table
         v-if="assessmentHistory"
         class='valuation-history'
         :slots="{ items: assessmentHistory }"
         :options="valuationHistoryHorizontalTableOptions"
-      />
+      /> -->
 
       <!-- sales history horizontal table -->
       <div
@@ -1024,7 +1024,7 @@ const print = () => {
         />
         <h3>Loading Sales History</h3>
       </div>
-      <horizontal-table
+      <!-- <horizontal-table
         v-if="OpaStore.activeSearch.salesHistory.data"
         class="break-avoid"
         :slots="{
@@ -1032,7 +1032,7 @@ const print = () => {
           items: OpaStore.activeSearch.salesHistory.data
         }"
         :options="salesHistoryHorizontalTableOptions"
-      />
+      /> -->
 
       <!-- L&I Records Link -->
       <div class="has-background-bell-yellow-light hide-print">
@@ -1046,11 +1046,11 @@ const print = () => {
           <br>related to this property.
         </div>
 
-        <button-comp-light
+        <!-- <button-comp-light
           :slots="{buttonAction: buttonLinkLI}"
         >
           View L&I Records
-        </button-comp-light>
+        </button-comp-light> -->
       </div>
 
       <!-- property details vertical table -->
@@ -1067,14 +1067,14 @@ const print = () => {
         />
         <h3>Loading Property Details</h3>
       </div>
-      <vertical-table-light
+      <!-- <vertical-table-light
         class="break-avoid"
         :slots="propertyDetailsVerticalTableSlots"
-      />
-      <vertical-table-light
+      /> -->
+      <!-- <vertical-table-light
         class="break-avoid"
         :slots="localDetailsVerticalTableSlots"
-      />
+      /> -->
       <div class="break-avoid">
         <p>You can download the property assessment dataset in bulk, and get more information about this data at
           <a target="_blank"

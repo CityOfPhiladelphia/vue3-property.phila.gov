@@ -16,6 +16,7 @@ import { useCondosStore } from '@/stores/CondosStore.js';
 const CondosStore = useCondosStore();
 import { useParcelsStore } from '@/stores/ParcelsStore.js';
 const ParcelsStore = useParcelsStore();
+// import { dataFetch } from '@/router/index.js';
 
 import { format, parseISO } from 'date-fns';
 import helpers from '../util/helpers';
@@ -655,8 +656,8 @@ const mapUnitIds = (id) => {
   return unitsToAdd;
 };
 
-const addCondoRecords = (item) => {
-  console.log('addCondoRecords is running, item:', item, 'this:', this);
+const addCondoRecords = async(item) => {
+  console.log('addCondoRecords is running 1, item:', item, 'this:', this);
 
   showTable.value = false;
   condoExpanded.value = true;
@@ -665,28 +666,39 @@ const addCondoRecords = (item) => {
   // console.log('after mapUnitIds', item);
   let unitData;
   if (MainStore.lastSearchMethod === 'block search') {
-      let result = DatafetchStore.blockSearch.data.filter(
-      row => row._featureId === item._featureId,
-    );
-  // console.log("block button: ", item, "result: ", result);
+        let result = DatafetchStore.blockSearch.data.filter(
+        row => row._featureId === item._featureId,
+      );
+    // console.log("block button: ", item, "result: ", result);
 
-  function arrayObjectIndexOf(myArray, searchTerm, property) {
-      for(let i = 0, len = myArray.length; i < len; i++) {
-        if (myArray[i][property] === searchTerm) {
-          return i;
+    function arrayObjectIndexOf(myArray, searchTerm, property) {
+        for(let i = 0, len = myArray.length; i < len; i++) {
+          if (myArray[i][property] === searchTerm) {
+            return i;
+          }
         }
-      }
-      return -1;
-  }
+        return -1;
+    }
 
-  let units = mapUnitIds(result[0].properties.pwd_parcel_id);
-  // console.log("arrayObjectIndexOf: ", DatafetchStore.blockSearch.data, item._featureId );
-  units.objIndex = arrayObjectIndexOf(DatafetchStore.blockSearch.data, item._featureId, "_featureId" );
+    let units = mapUnitIds(result[0].properties.pwd_parcel_id);
+    // console.log("arrayObjectIndexOf: ", DatafetchStore.blockSearch.data, item._featureId );
+    units.objIndex = arrayObjectIndexOf(DatafetchStore.blockSearch.data, item._featureId, "_featureId" );
 
-  // console.log("mapped unit id's: ", units);
-  DatafetchStore.setBlockSearchDataPush(units);
-  // $controller.dataManager.resetData();
-  // $controller.dataManager.fetchData();
+    // console.log("mapped unit id's: ", units);
+    DatafetchStore.setBlockSearchDataPush(units);
+
+    // somehow this has to call fetchData without affecting the route
+    // $controller.dataManager.resetData();
+    // $controller.dataMan;ager.fetchData();
+    // console.log('dataFetch:', dataFetch);
+    // dataFetch;
+    // const OpaStore = useOpaStore();
+    console.log('addCondoRecords is running 2, item:', item, 'this:', this);
+    await OpaStore.fillOpaPublic();
+    await OpaStore.fillOpaAssessment();
+    await OpaStore.fillActiveSearchAssessmentHistory();
+    await OpaStore.fillActiveSearchSalesHistory();
+    console.log('addCondoRecords is running 3, item:', item, 'this:', this);
 
 
   } else if (MainStore.lastSearchMethod === 'geocode') {
@@ -702,6 +714,13 @@ const addCondoRecords = (item) => {
     // GeocodeStore.setGeocodeRelated(unitData);
     GeocodeStore.related = unitData;
     // $controller.dataManager.fetchData();
+    console.log('addCondoRecords is running 2, item:', item, 'this:', this);
+    await OpaStore.fillOpaPublic();
+    await OpaStore.fillOpaAssessment();
+    // await OpaStore.fillActiveSearchAssessmentHistory();
+    // await OpaStore.fillActiveSearchSalesHistory();
+    console.log('addCondoRecords is running 3, item:', item, 'this:', this);
+
   } else if (MainStore.lastSearchMethod === 'reverseGeocode' ) {
   // if (MainStore.lastSearchMethod === 'reverseGeocode' || MainStore.lastSearchMethod === 'geocode') {
     // console.log("Not shape search, input: ", input)

@@ -760,9 +760,9 @@ const leftPanelHolderClass = computed(() => {
 
       </div>
         
-      <!-- <div :class="tableClass"> -->
-      <data-panel />
-      <!-- </div> -->
+      <div :class="tableClass">
+        <data-panel />
+      </div>
     </div> <!-- end of main-column -->
 
   </div> <!-- end of main -->
@@ -847,12 +847,12 @@ const leftPanelHolderClass = computed(() => {
   display: inline-block !important;
 }
 
-// #data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .stack>thead>tr>th {
-//   position: sticky;
-//   top: -2px !important;
-//   z-index: 2;
-//   border-left:1px solid white;
-// }
+#data-panel-container .pvc-horizontal-table .pvc-horizontal-table-body .stack>thead>tr>th {
+  position: sticky;
+  top: -2px !important;
+  z-index: 2;
+  border-left:1px solid white;
+}
 
 #results-summary{
   height: 45px;
@@ -875,10 +875,10 @@ const leftPanelHolderClass = computed(() => {
 //   flex: 1;
 // }
 
-// .bottom-half {
-//   overflow-y: auto;
-//   flex: 2;
-// }
+.bottom-half {
+  overflow-y: auto;
+  flex: 2;
+}
 
 // .bottom-none {
 //   // overflow-y: auto;
@@ -886,15 +886,15 @@ const leftPanelHolderClass = computed(() => {
 //   // display: none;
 // }
 
-// .condo-button {
-//   background-color: #5555;
-//   height: 100%;
-//   width: 100%;
-//   text-transform: unset;
-//   font-family: "Open Sans", Helvetica, Roboto, Arial, sans-serif;
-//   font-weight: 600;
-//   padding: 10.5px 0 10.5px 0;
-// }
+.condo-button {
+  background-color: #5555;
+  height: 100%;
+  width: 100%;
+  text-transform: unset;
+  font-family: "Open Sans", Helvetica, Roboto, Arial, sans-serif;
+  font-weight: 600;
+  padding: 10.5px 0 10.5px 0;
+}
 
 // .leaflet-top, .leaflet-bottom {
 //   z-index: 999 !important;
@@ -1059,9 +1059,9 @@ const leftPanelHolderClass = computed(() => {
   }
 
 
-//   thead {
-//     display: none;
-//   }
+  thead {
+    display: none;
+  }
 
 //   td {
 //     clear: both;

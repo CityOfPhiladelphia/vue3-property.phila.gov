@@ -31,14 +31,14 @@ const setFeatureProperties = (feature, totalUnits, units) => {
   const ParcelsStore = useParcelsStore();
   const CondosStore = useCondosStore();
   console.log('geocode setFeatureProperties is running, feature:', feature, 'totalUnits:', totalUnits);
-  // console.log('ParcelsStore.parcels.pwd[0].properties.ADDRESS:', ParcelsStore.parcels.pwd[0].properties.ADDRESS);
+  // console.log('ParcelsStore.pwd[0].properties.ADDRESS:', ParcelsStore.pwd[0].properties.ADDRESS);
 
   feature.properties.opa_owners = [ "Condominium (" + totalUnits + " Units)" ];
   if (Object.keys(ParcelsStore.pwd).length) {
-    feature.properties.street_address = ParcelsStore.parcels.pwd[0].properties.ADDRESS;
-    feature.properties.opa_address = ParcelsStore.parcels.pwd[0].properties.ADDRESS;
-    feature.properties.pwd_parcel_id = ParcelsStore.parcels.pwd[0].properties.PARCELID;
-    feature._featureId = ParcelsStore.parcels.pwd[0].properties.PARCELID;
+    feature.properties.street_address = ParcelsStore.pwd[0].properties.ADDRESS;
+    feature.properties.opa_address = ParcelsStore.pwd[0].properties.ADDRESS;
+    feature.properties.pwd_parcel_id = ParcelsStore.pwd[0].properties.PARCELID;
+    feature._featureId = ParcelsStore.pwd[0].properties.PARCELID;
     feature.condo = true;
   } else {
     console.log('setFeatureProperties is still running', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0]);
@@ -55,7 +55,7 @@ const setFeatureProperties = (feature, totalUnits, units) => {
     feature.condo = true;
   }
 
-  feature.condo = true;
+  // feature.condo = true;
   // console.log('setFeatureProperties is ending');
 }
 
@@ -82,7 +82,7 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
           sort_field: 'street_address',
           page: page,
         };
-        const response = await fetch(`https://api.phila.gov/ais/v1/search/${encodeURIComponent(parameter)}`, { params });
+        const response = await fetch(`https://api.phila.gov/ais-pde/v1/search/${encodeURIComponent(parameter)}`, { params });
         if (response.ok) {
           if (import.meta.env.VITE_DEBUG == 'true') console.log('check AIS - await resolved and HTTP status is successful')
           this.aisDataChecked = await response.json()
@@ -164,7 +164,7 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
         };
         // page: page,
         if (import.meta.env.VITE_DEBUG == 'true') console.log('Address - fillAisData is running, address:', address, 'params:', params);
-        const response = await axios(`https://api.phila.gov/ais/v1/search/${encodeURIComponent(address)}`, { params });
+        const response = await axios(`https://api.phila.gov/ais-pde/v1/search/${encodeURIComponent(address)}`, { params });
         if (response.status === 200) {
           console.log('ok');
           let data = await response.data;
@@ -197,7 +197,7 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
           if (relatedFeatures.length > 0) {
             // console.log('if relatedFeatures is running');
             MainStore.condoSearched = true;
-            feature.condo = true;
+            // feature.condo = true;
             CondosStore.setUnits({
               [feature.properties.pwd_parcel_id]: features,
             });

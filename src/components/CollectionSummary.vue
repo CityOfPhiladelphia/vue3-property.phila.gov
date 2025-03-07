@@ -134,7 +134,7 @@ export default {
       const valueQuantities = items.reduce((obj, item) => {
         // const val = item[this.$props.value];
         const val = getValue(item);
-        if (import.meta.env.VITE_DEBUG == 'true') console.log('in reduce, obj:', obj, 'item:', item, 'val:', val);
+        // if (import.meta.env.VITE_DEBUG == 'true') console.log('in reduce, obj:', obj, 'item:', item, 'val:', val);
         obj[val] = obj[val] || 0;
         obj[val]++;
         return obj;
