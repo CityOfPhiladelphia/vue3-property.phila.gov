@@ -12,6 +12,7 @@ export const useOpaStore = defineStore('OpaStore', {
         status: null,
         targets: {},
       },
+      opa_public_2: [],
       opa_public: {
         status: null,
         targets: {},
@@ -46,32 +47,35 @@ export const useOpaStore = defineStore('OpaStore', {
       try {
         const GeocodeStore = useGeocodeStore();
         const CondosStore = useCondosStore();
-        let opa = [];
-        const opaNum = GeocodeStore.aisData.properties.opa_account_num;
-        if (opaNum) {
-          opa.push(opaNum);
-        }
-        if (GeocodeStore.related != null){
-          for (let relate of GeocodeStore.related) {
-            opa.push(relate);
-          }
-        }
+        // let opa = [];
+        // const opaNum = GeocodeStore.aisData.properties.opa_account_num;
+        const pwdParcelId = GeocodeStore.aisData.properties.pwd_parcel_id;
+        // if (opaNum) {
+        //   opa.push(opaNum);
+        // }
+        // if (GeocodeStore.related != null){
+        //   for (let relate of GeocodeStore.related) {
+        //     opa.push(relate);
+        //   }
+        // }
         // if (state.geocode.data.condo != null && state.geocode.data.condo == true) {
         // if (state.geocode.data.condo != null && state.geocode.data.condo == true || typeof state.geocode.data.condo !== undefined && state.geocode.data.condo == true) {
         // console.log('opa-public in if condo is running');
         // opa.push(state.geocode.related[0]);
         // let idNumber = Number(ParcelsStore.pwd[0].properties.PARCELID);
-        if (!opa.length) {
-          // opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
-          console.log('CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]]:', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]]);
-          console.log('CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num:', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
-          opa.push(CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
-        }
-        if (import.meta.env.VITE_DEBUG) console.log('fillOpaPublic 2 opa:', opa);
+        // if (!opa.length) {
+        //   // opa.push(CondosStore.condosData.pages.page_1.features[0].properties.opa_account_num);
+        //   console.log('CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]]:', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]]);
+        //   console.log('CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num:', CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
+        //   opa.push(CondosStore.condoUnits.units[Object.keys(CondosStore.condoUnits.units)[0]][0].properties.opa_account_num);
+        // }
+        // if (import.meta.env.VITE_DEBUG) console.log('fillOpaPublic 2 opa:', opa);
 
-        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+in+(${opa.map(item => `'${item}'`).join(',')})`);
+        // const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+parcel_number+in+(${opa.map(item => `'${item}'`).join(',')})`);
+        const response = await fetch(`https://phl.carto.com/api/v2/sql?q=select+*+from+opa_properties_public_pde+where+pwd_parcel_id+in+('${pwdParcelId}')`);
         if (response.ok) {
           let data = await response.json();
+          this.opa_public_2 = data.rows;
           if (import.meta.env.VITE_DEBUG) console.log('data:', data);
           for (let row of data.rows) {
             this.opa_public.targets[row.parcel_number] = row;

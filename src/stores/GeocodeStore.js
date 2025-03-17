@@ -75,13 +75,13 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
     },
     async checkAisData(parameter) {
       try {
-        if (import.meta.env.VITE_DEBUG == 'true') console.log('checkAisData is running, parameter:', parameter);
         let params = {
           include_units: true,
           opa_only: true,
           sort_field: 'street_address',
-          page: page,
+          // page: page,
         };
+        if (import.meta.env.VITE_DEBUG == 'true') console.log('checkAisData is running, parameter:', parameter);
         const response = await fetch(`https://api.phila.gov/ais-pde/v1/search/${encodeURIComponent(parameter)}`, { params });
         if (response.ok) {
           if (import.meta.env.VITE_DEBUG == 'true') console.log('check AIS - await resolved and HTTP status is successful')
@@ -94,25 +94,31 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
         if (import.meta.env.VITE_DEBUG == 'true') console.error('check AIS - await never resolved, failed to fetch address data')
       }
     },
-    async getPages(features, data) {
+    async getPages(features, data, url) {
       const MainStore = useMainStore();
       const ParcelsStore = useParcelsStore();
       const totalUnits = data.total_size;
 
       let pages = Math.ceil(data.total_size / 100);
-      console.log('getPages is running still going 2, data:', data, 'pages:', pages);
+      console.log('getPages is running still going 2, features:', features, 'data:', data, 'pages:', pages);
 
-      if (pages > 1) {
-        console.log('if pages > 1 is running');
-        for (let counter = 2; counter<=pages; counter++) {
-          console.log('in loop, counter:', counter, 'this:', this, 'params:', params);
-          params.page = counter;
-          console.log('right before axios, url:', url);
-          let pageResponse = await axios.get(url, { params });
-          features = await features.concat(pageResponse.data.features);
-          // console.log('response:', pageResponse, 'features:', features)
-        }
-      }
+      // if (pages > 1) {
+      //   console.log('if pages > 1 is running');
+      //   for (let counter = 2; counter<=pages; counter++) {
+      //     let params = {
+      //       include_units: true,
+      //       opa_only: true,
+      //       sort_field: 'street_address',
+      //       page: counter,
+      //     };
+      //     console.log('in loop, counter:', counter, 'this:', this, 'params:', params);
+      //     params.page = counter;
+      //     console.log('right before axios, url:', url);
+      //     let pageResponse = await axios.get(url, { params });
+      //     features = await features.concat(pageResponse.data.features);
+      //     // console.log('response:', pageResponse, 'features:', features)
+      //   }
+      // }
 
       let units = features.filter(a => a.properties.unit_num != "");
       console.log('units1:', units);
@@ -122,7 +128,9 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
 
       var feature = JSON.parse(JSON.stringify(units[0]));
       for (let i in feature.properties) {
-        feature.properties[i] = "";
+        if (i !== 'pwd_parcel_id') {
+          feature.properties[i] = "";
+        }
       }
 
       if(!Object.keys(ParcelsStore.pwd).length) {
@@ -167,8 +175,10 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
         const response = await axios(`https://api.phila.gov/ais-pde/v1/search/${encodeURIComponent(address)}`, { params });
         if (response.status === 200) {
           console.log('ok');
+          let config = response.config;
           let data = await response.data;
           let features = data.features;
+          if (import.meta.env.VITE_DEBUG) console.log('config:', config);
           features.map((a, index) => a._featureId = 'feat-geocode-'+index);
           if (import.meta.env.VITE_DEBUG == 'true') console.log('Address - await resolved and HTTP status is successful, data:', data, 'features:', features);
           
@@ -184,7 +194,7 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
           // Example property: 1111 Herbert St.
           let featureGroup = features[0].match_type === 'exact_key' ? features.slice(1) : features;
           for (let relatedFeature of featureGroup){
-            console.log('feature:', feature, 'relatedFeature:', relatedFeature);
+            // console.log('feature:', feature, 'relatedFeature:', relatedFeature);
             if (feature.properties.address_high && relatedFeature.match_type !== 'exact') {
               if (relatedFeature.properties.address_high) {
                 relatedFeatures.push(relatedFeature);
@@ -208,7 +218,8 @@ export const useGeocodeStore = defineStore("GeocodeStore", {
             // getPages = getPages.bind(this);
             if (!exactMatch.length > 0) {
             // if (this.config.app && !exactMatch.length > 0 && this.config.app.title === 'Property Data Explorer') {
-              return this.getPages(features, data);
+              return this.getPages(features, data, config.url);
+              // return;
             }
 
             this.related = relatedFeatures;

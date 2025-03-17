@@ -499,7 +499,7 @@ onMounted(async () => {
   }.bind(this), false);
   // onResize();
   DatafetchStore.setActiveParcelLayer('pwd');
-  reactToRoute();
+  // reactToRoute();
   handleWindowResize();
 });
 
@@ -520,36 +520,36 @@ const handleWindowResize = () => {
   MainStore.windowDimensions = dim;
 }
 
-const reactToRoute = () => {
-  let query = route.query;
-  console.log('App.vue reactToRoute is running, route.query:', route.query);
-  if (query.shape) {
-    // MainStore.setDrawShape(query.shape);
-    onDataChange('shapeSearch');
-  } else if (query.address) {
-    closePropertyModal();
-    MainStore.setLeftPanel(false);
-    // console.log('query.address:', query.address);
-    onDataChange('geocode');
-  } else if (query.owner) {
-    closePropertyModal();
-    MainStore.setLeftPanel(false);
-    // console.log('query.owner:', query.owner);
-    onDataChange('ownerSearch');
-  } else if (query.buffer) {
-    closePropertyModal();
-    MainStore.setLeftPanel(false);
-    MainStore.setBufferMode(true);
-    onDataChange('bufferSearch');
-    MainStore.setLastSearchMethod('buffer search');
-  } else if (query.block) {
-    closePropertyModal();
-    MainStore.setLeftPanel(false);
-    // console.log('query.owner:', query.owner);
-    onDataChange('blockSearch');
-  } else if (query.p) {
-  }
-};
+// const reactToRoute = () => {
+//   let query = route.query;
+//   console.log('App.vue reactToRoute is running, route.query:', route.query);
+//   if (query.shape) {
+//     // MainStore.setDrawShape(query.shape);
+//     onDataChange('shapeSearch');
+//   } else if (query.address) {
+//     closePropertyModal();
+//     MainStore.setLeftPanel(false);
+//     // console.log('query.address:', query.address);
+//     onDataChange('geocode');
+//   } else if (query.owner) {
+//     closePropertyModal();
+//     MainStore.setLeftPanel(false);
+//     // console.log('query.owner:', query.owner);
+//     onDataChange('ownerSearch');
+//   } else if (query.buffer) {
+//     closePropertyModal();
+//     MainStore.setLeftPanel(false);
+//     MainStore.setBufferMode(true);
+//     onDataChange('bufferSearch');
+//     MainStore.setLastSearchMethod('buffer search');
+//   } else if (query.block) {
+//     closePropertyModal();
+//     MainStore.setLeftPanel(false);
+//     // console.log('query.owner:', query.owner);
+//     onDataChange('blockSearch');
+//   } else if (query.p) {
+//   }
+// };
 
 const closePropertyModal = async() => {
   MainStore.activeModal.featureId = null;
@@ -565,6 +565,7 @@ const openLeftPanel = (value) => {
   // MainStore.setFullScreenMapEnabled(!value);
 };
 
+// anything this still does should move to index.js
 const onDataChange = (type) => {
   if (type !== 'oneItem') {
     console.log('onDataChange if is running pvd router, type:', type, 'lastSearchMethod:', lastSearchMethod);

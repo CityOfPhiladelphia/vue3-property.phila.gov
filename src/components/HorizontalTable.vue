@@ -988,8 +988,8 @@ const handleFilterFormX = (e) => {
 };
 
 const filterItems = (items, filters, filterSelections) => {
-  // console.log('typeof items:', typeof items);
-  // console.log('FILTER ITEMS is running, items:', items, 'filters:', filters, 'filterSelections:', filterSelections);
+  console.log('typeof items:', typeof items);
+  console.log('FILTER ITEMS is running, items:', items, 'filters:', filters, 'filterSelections:', filterSelections);
   let itemsFiltered = items.slice();
 
   if (filters) {

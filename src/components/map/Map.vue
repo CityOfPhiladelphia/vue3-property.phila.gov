@@ -220,6 +220,7 @@ watch(
   if (import.meta.env.VITE_DEBUG == 'true') console.log('Map pwdCoordinates watch, newCoords:', newCoords, 'MapStore.addressMarker:', MapStore.addressMarker);
   if (newCoords.length) {
     const address = point(newCoords);
+    console.log('newCoords has length, address:', address, 'map.getSource("addressMarker"):', map.getSource('addressMarker'));
     map.getSource('addressMarker').setData(address);
   }
 });

@@ -85,36 +85,47 @@ const geocodeStatus = computed(() => {
 });
 
 const geocodeItems = computed(() => {
-  let data = [];
-  // if (!condoExpanded.value && geocode.value && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties && MainStore.lastSearchMethod === 'geocode') {
-  if (!condoExpanded.value && geocode.value && CondosStore.condoUnits.units && ParcelsStore.pwd && ParcelsStore.pwd[0] && ParcelsStore.pwd[0].properties) {
-  // if (geocode.value && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
-    const parentCondo = geocode.value;
-    console.log('in geocodeItems, in if, parentCondo:', parentCondo);
-    for (let i in parentCondo.properties) {
-      parentCondo.properties[i] = "";
-    }
-    if (CondosStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID]) {
-      parentCondo.properties.opa_owners = [ "Condominium (" + CondosStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID].length + " Units)" ];
-    }
-    parentCondo.properties.street_address = MainStore.parcels.pwd[0].properties.ADDRESS;
-    parentCondo.properties.opa_address = MainStore.parcels.pwd[0].properties.ADDRESS;
-    parentCondo.properties.pwd_parcel_id = MainStore.parcels.pwd[0].properties.PARCELID;
-    parentCondo._featureId = MainStore.parcels.pwd[0].properties.PARCELID;
-    // parentCondo.condo = true;
-    data.push(parentCondo);
-  } else {
-    console.log('in geocodeItems, in else, geocode.value:', geocode.value, 'geocode.value.related:', geocode.value.related);
-    if (geocode.value) {
-      data.push(geocode.value);
-    }
-    if (GeocodeStore.related) {
-      for (let related of GeocodeStore.related) {
-        data.push(related);
-      }
-    }
+  if (GeocodeStore.aisData.properties.opa_account_num) {
+    return OpaStore.opa_public_2;
   }
-  return data;
+  let data = { ...OpaStore.opa_public_2[0] };
+  for (let i in Object.keys(data)) {
+    data[Object.keys(data)[i]] = "";
+  }
+  let dataArray = [];
+  dataArray.push(data);
+  dataArray.push(OpaStore.opa_public_2[0]);
+
+  // data = OpaStore.
+  // if (!condoExpanded.value && geocode.value && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties && MainStore.lastSearchMethod === 'geocode') {
+  // if (!condoExpanded.value && geocode.value && CondosStore.condoUnits.units && ParcelsStore.pwd && ParcelsStore.pwd[0] && ParcelsStore.pwd[0].properties) {
+  // // if (geocode.value && DatafetchStore.condoUnits.units && MainStore.parcels.pwd && MainStore.parcels.pwd[0].properties) {
+  //   const parentCondo = geocode.value;
+  //   console.log('in geocodeItems, in if, parentCondo:', parentCondo);
+  //   for (let i in parentCondo.properties) {
+  //     parentCondo.properties[i] = "";
+  //   }
+  //   if (CondosStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID]) {
+  //     parentCondo.properties.opa_owners = [ "Condominium (" + CondosStore.condoUnits.units[MainStore.parcels.pwd[0].properties.PARCELID].length + " Units)" ];
+  //   }
+  //   parentCondo.properties.street_address = MainStore.parcels.pwd[0].properties.ADDRESS;
+  //   parentCondo.properties.opa_address = MainStore.parcels.pwd[0].properties.ADDRESS;
+  //   parentCondo.properties.pwd_parcel_id = MainStore.parcels.pwd[0].properties.PARCELID;
+  //   parentCondo._featureId = MainStore.parcels.pwd[0].properties.PARCELID;
+  //   // parentCondo.condo = true;
+  //   data.push(parentCondo);
+  // } else {
+  //   console.log('in geocodeItems, in else, geocode.value:', geocode.value, 'geocode.value.related:', geocode.value.related);
+  //   if (geocode.value) {
+  //     data.push(geocode.value);
+  //   }
+  //   if (GeocodeStore.related) {
+  //     for (let related of GeocodeStore.related) {
+  //       data.push(related);
+  //     }
+  //   }
+  // }
+  return dataArray;
 });
 
 const geocodeOptions = computed(() => {
@@ -162,24 +173,24 @@ const geocodeOptions = computed(() => {
           let address;
           if(MainStore.lastSearchMethod === "buffer search") {
             address = titleCase(item.address_std);
-          } else if (typeof item.properties.street_address != 'undefined') {
-            address = titleCase(item.properties.street_address);
-          } else if(item.properties.opa_address != "" && item.properties.opa_address != null) {
-            address = titleCase(item.properties.opa_address);
+          } else if (typeof item.street_address != 'undefined') {
+            address = titleCase(item.street_address);
+          } else if(item.opa_address != "" && item.opa_address != null) {
+            address = titleCase(item.opa_address);
           }
           return address;
         },
         customStyle: { float: 'left', 'padding-right': '5px' },
         customClass: "address-field faux-link",
         mobileIcon: "info-circle",
-        hideMobileIcon: (state, item) => typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined' ? true : false ,
+        hideMobileIcon: (state, item) => typeof OpaStore.opa_assessment.targets[item.opa_account_num] != 'undefined' ? true : false ,
       },
       {
         label: 'Market Value',
         value: function(item){
-          if(OpaStore.opa_assessment.targets[item.properties.opa_account_num]){
-            if(typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num].data != 'undefined') {
-              return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].market_value);
+          if(OpaStore.opa_assessment.targets[item.opa_account_num]){
+            if(typeof OpaStore.opa_assessment.targets[item.opa_account_num].data != 'undefined') {
+              return formatter.format(OpaStore.opa_assessment.targets[item.opa_account_num].market_value);
             }
           } else {
             return '';
@@ -199,17 +210,17 @@ const geocodeOptions = computed(() => {
             options: {
               class: function (item) {
                 console.log('item:', item);
-                // console.log('calculating button-comp class, item.properties.opa_account_num:', item.properties.opa_account_num, typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num]);
-                // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? "" : 'condo-button';
-                if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+                // console.log('calculating button-comp class, item.opa_account_num:', item.opa_account_num, typeof OpaStore.opa_assessment.targets[item.opa_account_num]);
+                // return OpaStore.opa_assessment.targets[item.opa_account_num] ? "" : 'condo-button';
+                if (typeof OpaStore.opa_assessment.targets[item.opa_account_num] != 'undefined') {
                   return '';
                 } else {
                   return 'condo-button';
                 }
               },
               style: function (item) {
-                // return OpaStore.opa_assessment.targets[item.properties.opa_account_num] ? { display: 'none' } : "";
-                if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
+                // return OpaStore.opa_assessment.targets[item.opa_account_num] ? { display: 'none' } : "";
+                if (typeof OpaStore.opa_assessment.targets[item.opa_account_num] != 'undefined') {
                   return { display: 'none' };
                 } else {
                   return '';
@@ -222,11 +233,11 @@ const geocodeOptions = computed(() => {
       {
         label: 'Date of Last Sale',
         value: function(item) {
-          if (item.properties.opa_account_num != ""){
-            if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined') {
-              // return format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date, 'MM/DD/YYYY');
-              if (OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date != null) {
-              return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date), 'MM/dd/yyyy');
+          if (item.opa_account_num != ""){
+            if (typeof OpaStore.opa_assessment.targets[item.opa_account_num] != 'undefined') {
+              // return format(OpaStore.opa_assessment.targets[item.opa_account_num].sale_date, 'MM/DD/YYYY');
+              if (OpaStore.opa_assessment.targets[item.opa_account_num].sale_date != null) {
+              return format(parseISO(OpaStore.opa_assessment.targets[item.opa_account_num].sale_date), 'MM/dd/yyyy');
               } else {
                 return "Not Applicable"
               }
@@ -236,10 +247,10 @@ const geocodeOptions = computed(() => {
           }
         },
         customKey: function(item) {
-          if (item.properties.opa_account_num != "") {
-            if (typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined' && OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date != null) {
-              // console.log(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date);
-              return format(parseISO(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_date), 'yyyyMMdd');
+          if (item.opa_account_num != "") {
+            if (typeof OpaStore.opa_assessment.targets[item.opa_account_num] != 'undefined' && OpaStore.opa_assessment.targets[item.opa_account_num].sale_date != null) {
+              // console.log(OpaStore.opa_assessment.targets[item.opa_account_num].sale_date);
+              return format(parseISO(OpaStore.opa_assessment.targets[item.opa_account_num].sale_date), 'yyyyMMdd');
             }
             return;
 
@@ -251,10 +262,10 @@ const geocodeOptions = computed(() => {
       {
         label: 'Price of Last Sale',
         value: function(item) {
-          if(item.properties.opa_account_num != ""){
-            if(typeof OpaStore.opa_assessment.targets[item.properties.opa_account_num] != 'undefined'){
-              if(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_price != null) {
-                return formatter.format(OpaStore.opa_assessment.targets[item.properties.opa_account_num].sale_price);
+          if(item.opa_account_num != ""){
+            if(typeof OpaStore.opa_assessment.targets[item.opa_account_num] != 'undefined'){
+              if(OpaStore.opa_assessment.targets[item.opa_account_num].sale_price != null) {
+                return formatter.format(OpaStore.opa_assessment.targets[item.opa_account_num].sale_price);
               } else {
                 return "Not Applicable"
               }
@@ -267,10 +278,10 @@ const geocodeOptions = computed(() => {
       {
         label: 'Owner',
         value: function(item){
-          if (item.properties.opa_owners != '' && typeof item.properties.opa_owners != 'undefined') {
-            return item.properties.opa_owners.join(', ');
+          if (item.opa_owners != '' && typeof item.opa_owners != 'undefined') {
+            return item.opa_owners.join(', ');
           }
-          return item.properties.usps_bldgfirm;
+          return item.usps_bldgfirm;
 
         },
       },
@@ -710,9 +721,9 @@ const addCondoRecords = async(item) => {
     // $controller.dataManager.clients.condoSearch.fetch(input);
     // console.log('addCondoRecords, item:', item);
     unitData = mapUnitIds(item._featureId);
-    console.log('in addCondoRecords, lastSearchMethod = geocode, unitData:', unitData);
+    console.log('in addCondoRecords, lastSearchMethod = geocode, unitData:', unitData, 'unitData[0]:', unitData[0]);
     // GeocodeStore.setGeocodeRelated(unitData);
-    GeocodeStore.related = unitData;
+    // GeocodeStore.related = unitData;
     // $controller.dataManager.fetchData();
     console.log('addCondoRecords is running 2, item:', item, 'this:', this);
     await OpaStore.fillOpaPublic();
